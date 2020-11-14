@@ -4,8 +4,8 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from src.csv_manager import *
-from src.read_pdf import *
+from src.text_extraction.csv_manager import *
+from src.text_extraction.read_pdf import *
 
 
 def add_element_to_dict(dictionary, element):
@@ -28,7 +28,7 @@ def main():
     word_dict = {}
     missing = {}
     start_time = datetime.datetime.now()
-    output_csv = 'output/dictionary.csv'
+    output_csv = 'output/dictionary_without_numbers.csv'
 
     for root, directories, filenames in os.walk(directory_of_files, topdown=False):
         for filename in filenames:
@@ -55,6 +55,8 @@ def main():
         print('Couldn\'t convert {} pdf files.'.format(len(missing.keys())))
     print('Done after {}'.format(end_time - start_time))
 
+    # terminology extraction, keyword extraction, etc
+    
 
 if __name__ == '__main__':
     main()
