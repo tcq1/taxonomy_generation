@@ -1,6 +1,7 @@
 import pyphen
 import os
 import pdfminer3
+import pdfminer3.pdfdocument
 from src.text_extraction.read_pdf import pdf_to_string
 import datetime
 
