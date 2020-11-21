@@ -1,9 +1,8 @@
-import pdfminer3
+import pdfminer
 import datetime
 import os
-import sys
+import spacy
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from src.text_extraction.csv_manager import *
 from src.text_extraction.read_pdf import *
 
@@ -15,6 +14,8 @@ def add_element_to_dict(dictionary, element):
     :return: updated dictionary
     """
 
+    if len(element) == 1:
+        return dictionary
     if element not in dictionary.keys():
         dictionary[element] = 1
     else:
@@ -24,38 +25,38 @@ def add_element_to_dict(dictionary, element):
 
 
 def main():
-    directory_of_files = 'resources/pdfs'
-    word_dict = {}
+    directory_of_files = '../../resources/pdfs'
+    documents = []
     missing = {}
     start_time = datetime.datetime.now()
-    output_csv = 'output/dictionary_without_numbers.csv'
+    output_csv = '../../output/dictionary.csv'
+    nlp = spacy.load('de_core_news_lg')
 
     for root, directories, filenames in os.walk(directory_of_files, topdown=False):
         for filename in filenames:
             if filename.lower().endswith('.pdf'):
+                word_dict = {}
                 file_path = os.path.join(root, filename).replace("\\", "/")
                 try:
-                    words = split_string(replace_cid_codes(pdf_to_string(file_path)))
-                    for word in words:
-                        add_element_to_dict(word_dict, word)
+                    doc = nlp(replace_cid_codes(pdf_to_string(file_path)))
+                    for token in doc:
+                        add_element_to_dict(word_dict, token.lemma_)
                     print('File {} processed!'.format(file_path))
                 except FileNotFoundError:
                     print('File {} not found. Skip'.format(file_path))
                     missing[file_path] = 'not found'
-                except pdfminer3.pdfdocument.PDFTextExtractionNotAllowed:
+                except pdfminer.pdfdocument.PDFTextExtractionNotAllowed:
                     print('File {} couldn\'t be converted. Skip'.format(file_path))
                     missing[file_path] = 'not convertible'
+                word_dict = {k: v for k, v in sorted(word_dict.items(), key=lambda item: item[1], reverse=True)}
+                documents.append(word_dict)
 
-    word_dict = {k: v for k, v in sorted(word_dict.items(), key=lambda item: item[1], reverse=True)}
     end_time = datetime.datetime.now()
 
-    print(word_dict)
-    export_dict(word_dict, output_csv)
+    export_docs(documents, output_csv)
     if len(missing.keys()) > 0:
         print('Couldn\'t convert {} pdf files.'.format(len(missing.keys())))
     print('Done after {}'.format(end_time - start_time))
-
-    # terminology extraction, keyword extraction, etc
     
 
 if __name__ == '__main__':

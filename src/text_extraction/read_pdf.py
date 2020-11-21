@@ -1,8 +1,8 @@
-from pdfminer3.layout import LAParams
-from pdfminer3.pdfpage import PDFPage
-from pdfminer3.pdfinterp import PDFResourceManager
-from pdfminer3.pdfinterp import PDFPageInterpreter
-from pdfminer3.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfpage import PDFPage
+from pdfminer.pdfinterp import PDFResourceManager
+from pdfminer.pdfinterp import PDFPageInterpreter
+from pdfminer.converter import TextConverter
 
 import io
 import re
@@ -54,6 +54,9 @@ def replace_cid_codes(string):
     string = string.replace('(cid:214)', 'Ö')
     string = string.replace('(cid:220)', 'Ü')
     string = string.replace('(cid:223)', 'ß')
+
+    string = string.replace('\n', ' ')
+    string = string.replace('\r', '')
 
     return string
 
