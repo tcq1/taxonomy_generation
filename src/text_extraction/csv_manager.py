@@ -18,7 +18,7 @@ def export_dict(dictionary, output_path):
     :param output_path: file path to csv file
     """
 
-    with open(output_path, 'a') as f:
+    with open(output_path, 'a', encoding='utf-8') as f:
         for key in dictionary.keys():
             try:
                 f.write('{}:{},'.format(key, dictionary[key]))
