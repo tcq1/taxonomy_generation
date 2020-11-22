@@ -108,9 +108,17 @@ def train(output_path):
     return clf
 
 
-def predict(model_path, word):
-    clf = load(model_path)
-    result = clf.predict([extract_feature_vector(word)])
+def predict(model, word):
+    """ Makes prediction for a single word
+
+    :param model: model or path to model
+    :param word: word
+    :return: 0 for negative, 1 for positive
+    """
+    if type(model) == str:
+        model = load(model)
+
+    result = model.predict([extract_feature_vector(word)])
 
     return result
 
@@ -124,10 +132,10 @@ def main():
     wikipedia = import_docs(wikipedia_path)
 
     model_path = '../../output/clf.joblib'
-    train(model_path)
-    prediction = predict(model_path, 'Test')
+    model = train(model_path)
+    prediction = predict(model, 'Test')
     print('Prediction of word {}: {}'.format('Test', prediction))
-    prediction = predict(model_path, 'schweißen')
+    prediction = predict(model, 'schweißen')
     print('Prediction of word {}: {}'.format('schweißen', prediction))
 
 
