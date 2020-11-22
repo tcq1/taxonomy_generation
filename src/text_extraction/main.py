@@ -25,26 +25,14 @@ def add_element_to_dict(dictionary, element):
     return dictionary
 
 
-def adapt_lengths_of_docs(documents):
-    max_length = max(len(doc) for doc in documents)
-
-    for doc in documents:
-        empty_key = ' '
-        while len(doc) < max_length:
-            doc[empty_key] = 0
-            empty_key += ' '
-
-    return documents
-
-
 def main():
     directory_of_files = '../../resources/pdfs'
     documents = []
     documents_lemmas = []
     missing = {}
     start_time = datetime.datetime.now()
-    output_csv = '../../output/dictionary_new.csv'
-    output_lemmas = '../../output/dictionary_lemmas_new.csv'
+    output_csv = '../../output/dictionary.csv'
+    output_lemmas = '../../output/dictionary_lemmas.csv'
     nlp = spacy.load('de_core_news_lg')
 
     for root, directories, filenames in os.walk(directory_of_files, topdown=False):
@@ -72,9 +60,6 @@ def main():
                     documents.append(word_dict)
                 if len(lemma_dict) > 0:
                     documents_lemmas.append(lemma_dict)
-
-    documents = adapt_lengths_of_docs(documents)
-    documents_lemmas = adapt_lengths_of_docs(documents_lemmas)
 
     export_docs(documents, output_csv)
     export_docs(documents_lemmas, output_lemmas)
