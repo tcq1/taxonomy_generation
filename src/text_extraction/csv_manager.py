@@ -22,11 +22,16 @@ def export_dict(dictionary, output_path):
                 f.write('{}:{},'.format(key, dictionary[key]))
             except UnicodeEncodeError:
                 print("Couldn't encode {}. Skip".format(key))
+        f.write('\n')
 
     f.close()
 
 
 def import_docs(file_path):
+    """ Imports a csv file and returns a list of dictionaries
+
+    :param file_path: Path of csv file
+    """
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read().splitlines()
 
@@ -49,7 +54,10 @@ def import_dict(line):
 
     elements = line.split(',')
     for element in elements:
-        key, value = element.split(':')
-        dictionary[key] = int(value)
+        try:
+            key, value = element.split(':')
+            dictionary[key] = int(value)
+        except ValueError:
+            pass
 
     return dictionary

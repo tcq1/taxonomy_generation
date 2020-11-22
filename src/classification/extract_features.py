@@ -76,4 +76,4 @@ def appearance_per_doc_length(word, documents):
         # calculate ratio
         avg += counter / doc_length
 
-    return [avg / len(documents), number_appearances]
+    return [avg / len(documents), number_appearances / len(documents)]
