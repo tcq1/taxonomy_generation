@@ -1,0 +1,45 @@
+Features: feature_names = ['Has capital letter', 'Word length', 'Number syllables',
+                           'Appearance ratio in pdfs', 'Appearances in pdfs',
+                           'Appearance ratio in wikipedia articles', 'Appearances in wikipedia articles']
+negativer Testdatensatz: 150 Wörter
+Modell Parameter: RandomForestClassifier(n_estimators=1000, max_features=None, max_depth=6,
+                                         min_samples_split=2, n_jobs=12)
+Dokumente mit Lemmas verwendet
+10-fold Cross Validation score: ca. 0.77
+Feature importance: {'Has capital letter': 5.204111119053627,
+                     'Word length': 31.401355900664505,
+                     'Number syllables': 9.26098716288617,
+                     'Appearance ratio in pdfs': 19.40455139046279,
+                     'Appearances in pdfs': 4.297463221121065,
+                     'Appearance ratio in wikipedia articles': 21.664351394289504,
+                     'Appearances in wikipedia articles': 8.767179811522332}
+
+Änderung: negativer Testdatensatz erweitert auf 1265 Zeichen
+        --> Cross val score: ca. 0.91
+        Feature importance: {'Has capital letter': 4.5938789371426605,
+                             'Word length': 39.394412858081395,
+                             'Number syllables': 5.362683678870906,
+                             'Appearance ratio in pdfs': 19.762329426072515,
+                             'Appearances in pdfs': 5.16965372921173,
+                             'Appearance ratio in wikipedia articles': 16.049473073904714,
+                             'Appearances in wikipedia articles': 9.667568296716079}
+
+Änderung: Dokumente ohne Lemmas verwendet:
+        --> Cross val score: ca. 0.92
+        Feature importance: {'Has capital letter': 5.657450785653602,
+                             'Word length': 41.413060648796815,
+                             'Number syllables': 6.555920248427184,
+                             'Appearance ratio in pdfs': 20.44468316051423,
+                             'Appearances in pdfs': 5.941683275591057,
+                             'Appearance ratio in wikipedia articles': 13.697671080008858,
+                             'Appearances in wikipedia articles': 6.289530801008265}
+
+Änderung: negativer Testdatensatz erweitert auf 13595 Wörter
+        -- Cross val score: ca. 0.98-0.99
+        Feature importance: {'Has capital letter': 11.230012695443035,
+                             'Word length': 38.23398128627322,
+                             'Number syllables': 3.332548774919186,
+                             'Appearance ratio in pdfs': 24.850159018558436,
+                             'Appearances in pdfs': 5.037969000986624,
+                             'Appearance ratio in wikipedia articles': 11.718549986280417,
+                             'Appearances in wikipedia articles': 5.596779237539085}
