@@ -1,6 +1,6 @@
 from joblib import dump, load
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, train_test_split
 from timeit import default_timer as timer
 
 from src.classification.extract_features import *
@@ -77,14 +77,14 @@ def get_feature_importance(clf):
     return importance_dict
 
 
-def train(output_path):
-    """ Trains a model and returns it
-    :param output_path: Output path for model
-    :return: model
+def get_data(positive_path, negative_path, test_size):
     """
-    positive_path = '../../output/training_small_positive.txt'
-    negative_path = '../../output/training_small_negative.txt'
 
+    :param positive_path: File path of positive labeled data
+    :param negative_path: File path of negative labeled data
+    :param test_size: Value between 0 and 1 determining the proportion of validation data
+    :return:
+    """
     positive_data, labels = load_data(positive_path, 1)
     negative_data, labels2 = load_data(negative_path, 0)
 
@@ -92,11 +92,21 @@ def train(output_path):
     training_data.extend(negative_data)
     labels.extend(labels2)
 
-    start_time = timer()
+    return train_test_split(extract_feature_vector_of_list(training_data), labels,
+                            test_size=test_size, random_state=1)
 
-    clf = RandomForestClassifier(n_estimators=1000, max_features=4, max_depth=6, min_samples_split=2, n_jobs=8)
-    clf.fit(extract_feature_vector_of_list(training_data), labels)
-    score = cross_val_score(clf, extract_feature_vector_of_list(training_data), labels, cv=10)
+
+def train(X, y, clf, output_path):
+    """ Trains a model and returns it
+    :param X: Input data array of shape [n_samples, n_features]
+    :param y: Label array of shape [n_samples]
+    :param clf: Classifier
+    :param output_path: Output path for model
+    :return: model
+    """
+
+    start_time = timer()
+    score = cross_val_score(clf, extract_feature_vector_of_list(X), y, cv=10, scoring='f1_macro')
     print('Score = {}, mean = {}'.format(score, score.mean()))
     print('Importance: {}'.format(get_feature_importance(clf)))
     end_time = timer()
@@ -126,17 +136,18 @@ def predict(model, word):
 def main():
     global documents
     global wikipedia
+    positive_path = '../../output/training_small_positive.txt'
+    negative_path = '../../output/training_small_negative.txt'
     documents_path = '../../output/dictionary_lemmas.csv'
     wikipedia_path = '../../output/wikipedia_lemmas.csv'
     documents = import_docs(documents_path)
     wikipedia = import_docs(wikipedia_path)
 
+    clf = RandomForestClassifier(n_estimators=1000, max_features=4, max_depth=6, min_samples_split=2, n_jobs=8)
+    X_training, X_validation, y_training, y_validation = get_data(positive_path, negative_path, 0.3)
+
     model_path = '../../output/clf.joblib'
-    model = train(model_path)
-    prediction = predict(model, 'Test')
-    print('Prediction of word {}: {}'.format('Test', prediction))
-    prediction = predict(model, 'schweißen')
-    print('Prediction of word {}: {}'.format('schweißen', prediction))
+    model = train(X_training, y_training, clf, model_path)
 
 
 if __name__ == '__main__':
