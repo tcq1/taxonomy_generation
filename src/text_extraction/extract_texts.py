@@ -101,17 +101,14 @@ def extract_pdfs():
     print('Done after {}s'.format(end_time - start_time))
     
 
-def extract_wikipedia():
+def extract_wikipedia(output_csv, output_lemmas, num_pages):
     """ Extracts all tokens from random wikipedia pages and exports them to csv files.
         One csv file contains the words unmodified, the other one contains the lemmas of the words.
+
+        :param output_csv: output path for normal token.text
+        :param output_lemmas: output path for token.lemma_
+        :param num_pages: number of wikipedia pages to scan
     """
-
-    # number of pages to extract
-    num_pages = 100
-
-    # output paths
-    output_csv = '../../output/wikipedia.csv'
-    output_lemmas = '../../output/wikipedia_lemmas.csv'
 
     # setup
     wikipedia.set_lang('de')
@@ -151,7 +148,7 @@ def extract_wikipedia():
             wikipedia_articles.append(word_dict)
         if len(lemma_dict) > 0:
             wikipedia_articles_lemmas.append(lemma_dict)
-        print('Page {} processed!'.format(page.title))
+        print('[{}/{}]: Page {} processed!'.format(i, num_pages, page.title))
 
     # export lists to csv files
     export_docs(wikipedia_articles, output_csv)
@@ -162,7 +159,11 @@ def extract_wikipedia():
 
 
 def main():
-    extract_wikipedia()
+    # output paths
+    output_csv = '../../output/wikipedia_1000.csv'
+    output_lemmas = '../../output/wikipedia_lemmas_thousand.csv'
+
+    extract_wikipedia(output_csv, output_lemmas, 1000)
 
 
 if __name__ == '__main__':

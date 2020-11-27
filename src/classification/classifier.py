@@ -11,19 +11,19 @@ documents = None
 wikipedia = None
 
 
-def extract_feature_vector(word):
+def get_feature_vector(word):
     appearance_ratio_pdfs, appearances_pdfs = appearance_per_doc_length(word, documents)
     appearance_ratio_wikipedia, appearance_wikipedia = appearance_per_doc_length(word, wikipedia)
-    return [has_capital_letter(word), contains_hyphen(word), get_word_length(word), get_number_syllables(word),
+    return [has_capital_letter(word), get_word_length(word), get_number_syllables(word),
             appearance_ratio_pdfs, appearances_pdfs,
             appearance_ratio_wikipedia, appearance_wikipedia]
 
 
-def extract_feature_vector_of_list(words):
+def get_feature_vector_of_list(words):
     features = []
 
     for word in words:
-        features.append(extract_feature_vector(word))
+        features.append(get_feature_vector(word))
 
     return features
 
@@ -66,7 +66,7 @@ def get_feature_importance(clf):
     :param clf: model
     :return: importance dictionary
     """
-    feature_names = ['Has capital letter', 'Contains hyphen', 'Word length', 'Number syllables',
+    feature_names = ['Has capital letter', 'Word length', 'Number syllables',
                      'Appearance ratio in pdfs', 'Appearances in pdfs',
                      'Appearance ratio in wikipedia articles', 'Appearances in wikipedia articles']
     importance = clf.feature_importances_
@@ -121,16 +121,12 @@ def train(X, y, clf, output_path):
 def predict(model, word):
     """ Makes prediction for a single word
 
-    :param model: model or path to model
+    :param model: model
     :param word: word
     :return: 0 for negative, 1 for positive
     """
-    if type(model) == str:
-        model = load(model)
 
-    result = model.predict([extract_feature_vector(word)])
-
-    return result
+    return model.predict_proba([get_feature_vector(word)])
 
 
 def main():
