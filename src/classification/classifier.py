@@ -11,19 +11,19 @@ documents = None
 wikipedia = None
 
 
-def extract_feature_vector(word):
+def get_feature_vector(word):
     appearance_ratio_pdfs, appearances_pdfs = appearance_per_doc_length(word, documents)
     appearance_ratio_wikipedia, appearance_wikipedia = appearance_per_doc_length(word, wikipedia)
-    return [has_capital_letter(word), contains_hyphen(word), get_word_length(word), get_number_syllables(word),
+    return [has_capital_letter(word), get_word_length(word), get_number_syllables(word),
             appearance_ratio_pdfs, appearances_pdfs,
             appearance_ratio_wikipedia, appearance_wikipedia]
 
 
-def extract_feature_vector_of_list(words):
+def get_feature_vector_of_list(words):
     features = []
 
     for word in words:
-        features.append(extract_feature_vector(word))
+        features.append(get_feature_vector(word))
 
     return features
 
@@ -66,7 +66,7 @@ def get_feature_importance(clf):
     :param clf: model
     :return: importance dictionary
     """
-    feature_names = ['Has capital letter', 'Contains hyphen', 'Word length', 'Number syllables',
+    feature_names = ['Has capital letter', 'Word length', 'Number syllables',
                      'Appearance ratio in pdfs', 'Appearances in pdfs',
                      'Appearance ratio in wikipedia articles', 'Appearances in wikipedia articles']
     importance = clf.feature_importances_
@@ -83,7 +83,7 @@ def train(output_path):
     :return: model
     """
     positive_path = '../../output/training_small_positive.txt'
-    negative_path = '../../output/training_small_negative.txt'
+    negative_path = '../../output/training_small_negative_extended2.txt'
 
     positive_data, labels = load_data(positive_path, 1)
     negative_data, labels2 = load_data(negative_path, 0)
@@ -94,9 +94,9 @@ def train(output_path):
 
     start_time = timer()
 
-    clf = RandomForestClassifier(n_estimators=1000, max_features=4, max_depth=6, min_samples_split=2, n_jobs=8)
-    clf.fit(extract_feature_vector_of_list(training_data), labels)
-    score = cross_val_score(clf, extract_feature_vector_of_list(training_data), labels, cv=10)
+    clf = RandomForestClassifier(n_estimators=1000, max_features=None, max_depth=6, min_samples_split=2, n_jobs=12)
+    clf.fit(get_feature_vector_of_list(training_data), labels)
+    score = cross_val_score(clf, get_feature_vector_of_list(training_data), labels, cv=10)
     print('Score = {}, mean = {}'.format(score, score.mean()))
     print('Importance: {}'.format(get_feature_importance(clf)))
     end_time = timer()
@@ -111,32 +111,33 @@ def train(output_path):
 def predict(model, word):
     """ Makes prediction for a single word
 
-    :param model: model or path to model
+    :param model: model
     :param word: word
     :return: 0 for negative, 1 for positive
     """
-    if type(model) == str:
-        model = load(model)
 
-    result = model.predict([extract_feature_vector(word)])
-
-    return result
+    return model.predict_proba([get_feature_vector(word)])
 
 
 def main():
     global documents
     global wikipedia
-    documents_path = '../../output/dictionary_lemmas.csv'
-    wikipedia_path = '../../output/wikipedia_lemmas.csv'
+    documents_path = '../../output/dictionary.csv'
+    wikipedia_path = '../../output/wikipedia.csv'
     documents = import_docs(documents_path)
     wikipedia = import_docs(wikipedia_path)
 
     model_path = '../../output/clf.joblib'
     model = train(model_path)
-    prediction = predict(model, 'Test')
-    print('Prediction of word {}: {}'.format('Test', prediction))
-    prediction = predict(model, 'schweißen')
-    print('Prediction of word {}: {}'.format('schweißen', prediction))
+    # model = load(model_path)
+
+    a = 'Test'
+    b = 'Werkstoffprüfung'
+    prediction = predict(model, a)
+    print('Prediction of word {}: {}'.format(a, prediction))
+    prediction = predict(model, b)
+    print('Prediction of word {}: {}'.format(b, prediction))
+    print(get_feature_importance(model))
 
 
 if __name__ == '__main__':

@@ -30,18 +30,9 @@ def has_capital_letter(word):
     """ Returns whether the word starts with a capital letter or not
 
     :param word: word
-    :return: boolean
+    :return: int(boolean)
     """
-    return word[0].isupper()
-
-
-def contains_hyphen(word):
-    """ Returns whether the word contains a hyphen or not
-
-    :param word: word
-    :return: boolean
-    """
-    return '-' in word
+    return int(word[0].isupper())
 
 
 def appearance_per_doc_length(word, documents):
