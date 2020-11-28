@@ -43,3 +43,56 @@ Feature importance: {'Has capital letter': 5.204111119053627,
                              'Appearances in pdfs': 5.037969000986624,
                              'Appearance ratio in wikipedia articles': 11.718549986280417,
                              'Appearances in wikipedia articles': 5.596779237539085}
+
+Einführung Confusion Matrix:
+        30% Trainingsdaten zur Validierung benutzt
+        sehr großer Datensatz: [[4181 9]
+                                [ 23 20]]
+                                --> negativen Daten gut predicted (99.8%), positive Daten nur zu unter 50% richtig predicted
+        mittelgroßer Datensatz: [[362 18]
+                                 [ 22 23]]
+                                --> negative Daten etwas schlechter predicted (95%), positive Daten immer noch unter 50%
+        kleiner Datensatz, beide gleich groß:
+                                [[41 6]
+                                 [8 35]
+                                --> negative Daten noch schlechter predicted (87%), positive Daten besser predicted
+
+Class weights balanced:
+        normaler Datensatz:
+            Score = [0.76136364 0.78559274 0.66666667 0.71363636 0.80778032], mean = 0.7470079453362253
+            Importance:
+                Has capital letter: 4.505736535700791%
+                Word length: 23.859155943334677%
+                Number syllables: 11.693500527894399%
+                Appearance ratio in pdfs: 19.29590404003718%
+                Appearances in pdfs: 7.282019127171732%
+                Appearance ratio in wikipedia articles: 17.33549635306581%
+                Appearances in wikipedia articles: 16.028187472795423%
+            [[40  7]
+             [ 8 35]]
+
+        extended Datensatz:
+            Score = [0.69980507 0.79305792 0.74464286 0.79398844 0.79545455], mean = 0.7653897668216196
+            Importance: {'Has capital letter': 4.720721024197644,
+                         'Word length': 25.583564669852564,
+                         'Number syllables': 8.407292782928018,
+                         'Appearance ratio in pdfs': 20.078593592484324,
+                         'Appearances in pdfs': 12.010729882860847,
+                         'Appearance ratio in wikipedia articles': 17.896474618125588,
+                         'Appearances in wikipedia articles': 11.302623429550993}
+            [[338  42]
+             [ 12  33]]
+
+        extended2 Datensatz:
+            Score = [0.71356904 0.71911624 0.69182037 0.68854235 0.68854235], mean = 0.7003180679004327
+            Importance:
+                Has capital letter: 2.71696097232397 %
+                Word length: 5.463139326288392 %
+                Number syllables: 1.7073298751222563 %
+                Appearance ratio in pdfs: 15.943809685018975 %
+                Appearances in pdfs: 10.013855547394272 %
+                Appearance ratio in wikipedia articles: 32.464033214378674 %
+                Appearances in wikipedia articles: 31.690871379473467 %
+                Total time for training: 13.2139168s
+            [[4082  108]
+             [   7   36]]

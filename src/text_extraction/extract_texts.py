@@ -161,7 +161,7 @@ def extract_wikipedia(output_csv, output_lemmas, num_pages):
 def main():
     # output paths
     output_csv = '../../output/wikipedia_1000.csv'
-    output_lemmas = '../../output/wikipedia_lemmas_thousand.csv'
+    output_lemmas = '../../output/wikipedia_lemmas_1000.csv'
 
     extract_wikipedia(output_csv, output_lemmas, 1000)
 
