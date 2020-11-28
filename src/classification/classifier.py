@@ -3,7 +3,7 @@ import numpy as np
 from joblib import dump, load
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
 from timeit import default_timer as timer
 
 from src.classification.extract_features import *
@@ -135,6 +135,28 @@ def train(X, y, clf, k, output_path, scoring):
     return clf
 
 
+def find_optimal_classifier(clf, X_train, y_train, param_grid, k):
+    """ Uses randomized search to find the best classifier.
+
+    :param clf: Model
+    :param X_train: Training data input vectors
+    :param y_train: Training data labels
+    :param param_grid: Parameter grid in which to search for
+    :param k: Number of subsets to divide the training data into for cross validation
+    :return: Best model
+    """
+
+    start = timer()
+    search = GridSearchCV(clf, param_grid=param_grid, cv=k)
+    search.fit(X_train, y_train)
+    end = timer()
+
+    print('Optimal parameters: '.format(search.best_params_))
+    print('Tuning hyperparameters took {}s'.format(end-start))
+
+    return search.best_estimator_
+
+
 def main():
     global documents
     global wikipedia
@@ -149,9 +171,15 @@ def main():
     clf = RandomForestClassifier(n_estimators=1000, max_features=4, max_depth=6, min_samples_split=2, n_jobs=8,
                                  class_weight='balanced')
 
+    parameter_grid = {'max_features': [2, 3, 4, 5, 6, 7],
+                      'max_depth': [3, 4, 5, 6, 7, 8, 9, 10],
+                      'min_samples_split': [2, 3, 4, 5, 6, 7]}
+
+    model = find_optimal_classifier(clf, X_training, y_training, parameter_grid, 5)
+
     scoring = 'f1_macro'
     model_path = '../../output/models/random_forest.joblib'
-    model = train(X_training, y_training, clf, 5, model_path, scoring)
+    # model = train(X_training, y_training, clf, 5, model_path, scoring)
     y_predicted = model.predict(X_validation)
     cm = confusion_matrix(y_validation, y_predicted)
     print(cm)
