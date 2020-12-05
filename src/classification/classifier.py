@@ -1,25 +1,41 @@
 import numpy as np
+import spacy
 
 from joblib import dump, load
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
+from sklearn.neural_network import MLPClassifier
 from timeit import default_timer as timer
 
 from src.classification.extract_features import *
 from src.text_extraction.csv_manager import import_docs
+from src.text_extraction.manipulate_training_data import load_words_to_list
 
 
 documents = None
 wikipedia = None
+nlp = spacy.load('de_core_news_lg')
 
 
 def get_feature_vector(word):
     appearance_ratio_pdfs, appearances_pdfs = appearance_per_doc_length(word, documents)
     appearance_ratio_wikipedia, appearance_wikipedia = appearance_per_doc_length(word, wikipedia)
-    return np.array([has_capital_letter(word), get_word_length(word), get_number_syllables(word),
+    return np.array([has_capital_letter(word),
+                     get_word_length(word),
+                     get_number_syllables(word),
                      appearance_ratio_pdfs, appearances_pdfs,
-                     appearance_ratio_wikipedia, appearance_wikipedia])
+                     appearance_ratio_wikipedia, appearance_wikipedia,
+                     normed_word_vector(word, nlp)])
+
+
+def get_feature_names():
+    return ['Has capital letter',
+            'Word length',
+            'Number syllables',
+            'Appearance ratio in pdfs', 'Appearances in pdfs',
+            'Appearance ratio in wikipedia articles', 'Appearances in wikipedia articles',
+            'Feature vector normed']
 
 
 def get_feature_vector_of_list(words):
@@ -31,14 +47,15 @@ def get_feature_vector_of_list(words):
     return features
 
 
-def load_data(path, label):
+def load_data(path):
     words = []
     labels = []
     with open(path, encoding='utf-8') as f:
         lines = f.read().splitlines()
         for line in lines:
-            words.append(line)
-            labels.append(label)
+            l = line.split(',')
+            words.append(l[0])
+            labels.append((l[1]))
 
     return words, labels
 
@@ -69,9 +86,7 @@ def get_feature_importance(clf):
     :param clf: model
     :return: importance dictionary
     """
-    feature_names = ['Has capital letter', 'Word length', 'Number syllables',
-                     'Appearance ratio in pdfs', 'Appearances in pdfs',
-                     'Appearance ratio in wikipedia articles', 'Appearances in wikipedia articles']
+    feature_names = get_feature_names()
     importance = clf.feature_importances_
     importance_dict = {}
     for i in range(len(feature_names)):
@@ -80,20 +95,21 @@ def get_feature_importance(clf):
     return importance_dict
 
 
-def get_data(positive_path, negative_path, test_size):
+def get_data(file_paths, test_size):
     """
 
-    :param positive_path: File path of positive labeled data
-    :param negative_path: File path of negative labeled data
+    :param file_paths: List of paths to iterate through
     :param test_size: Value between 0 and 1 determining the proportion of validation data
     :return:
     """
-    positive_data, labels = load_data(positive_path, 1)
-    negative_data, labels2 = load_data(negative_path, 0)
 
-    training_data = positive_data
-    training_data.extend(negative_data)
-    labels.extend(labels2)
+    training_data = []
+    labels = []
+
+    for file in file_paths:
+        data, label = load_data(file)
+        training_data.extend(data)
+        labels.extend(label)
 
     return train_test_split(get_feature_vector_of_list(training_data), labels,
                             test_size=test_size, random_state=1)
@@ -125,7 +141,10 @@ def train(X, y, clf, k, output_path, scoring):
     clf.fit(X, y)
     score = cross_val_score(clf, X, y, cv=k, scoring=scoring)
     print('Score = {}, mean = {}'.format(score, score.mean()))
-    print_feature_importance(clf)
+    try:
+        print_feature_importance(clf)
+    except AttributeError:
+        print("Couldn't get feature importance for this classifier!")
     end_time = timer()
     print('Total time for training: {}s'.format(end_time-start_time))
 
@@ -135,7 +154,7 @@ def train(X, y, clf, k, output_path, scoring):
     return clf
 
 
-def find_optimal_classifier(clf, X_train, y_train, param_grid, k):
+def find_optimal_classifier(clf, X_train, y_train, param_grid, k, scoring):
     """ Uses randomized search to find the best classifier.
 
     :param clf: Model
@@ -143,46 +162,93 @@ def find_optimal_classifier(clf, X_train, y_train, param_grid, k):
     :param y_train: Training data labels
     :param param_grid: Parameter grid in which to search for
     :param k: Number of subsets to divide the training data into for cross validation
+    :param scoring: Scoring method
     :return: Best model
     """
 
+    print('Starting to find optimal classifier...')
+
     start = timer()
-    search = GridSearchCV(clf, param_grid=param_grid, cv=k)
+    search = GridSearchCV(clf, param_grid=param_grid, cv=k, scoring=scoring, n_jobs=8)
     search.fit(X_train, y_train)
     end = timer()
 
-    print('Optimal parameters: '.format(search.best_params_))
+    print(search.cv_results_)
+    print('Optimal parameters: '.format(search.get_params()))
+    print('Best score: '.format(search.best_score_))
     print('Tuning hyperparameters took {}s'.format(end-start))
 
     return search.best_estimator_
 
 
+def export_predicted_words(words, clf, file_path):
+    """ Makes prediction for a list of words and exports them to a csv file
+
+    :param words: list of words
+    :param clf: Classifier
+    :param file_path: export file path
+    """
+    print('Making predictions for words...')
+    y_new = clf.predict(get_feature_vector_of_list(words))
+
+    print('Write to file...')
+    with open(file_path, 'w', encoding='utf-8') as f:
+        for i in range(len(words)):
+            f.write('{},{}\n'.format(words[i], y_new[i]))
+    f.close()
+
+
+def test(x1, x2, y1, y2):
+    pass
+
+
 def main():
     global documents
     global wikipedia
-    positive_path = '../../output/training_data/training_small_positive_lemmas.txt'
-    negative_path = '../../output/training_data/training_small_negative_extended2.txt'
+    positive_path = '../../output/training_data/training_small_positive_lemmas_labeled.txt'
+    negative_small = '../../output/training_data/training_small_negative_labeled.txt'
+    negative_medium = '../../output/training_data/training_medium_negative_labeled.txt'
+    negative_large = '../../output/training_data/training_large_negative_labeled.txt'
+    extra_data = '../../output/training_data/done.csv'
     documents_path = '../../output/csv/dictionary_lemmas.csv'
     wikipedia_path = '../../output/csv/wikipedia_lemmas.csv'
     documents = import_docs(documents_path)
     wikipedia = import_docs(wikipedia_path)
 
-    X_training, X_validation, y_training, y_validation = get_data(positive_path, negative_path, 0.3)
+    # get split datasets
+    X_training, X_validation, y_training, y_validation = get_data([positive_path, negative_large, extra_data], 0.3)
+    # instantiate classifier
     clf = RandomForestClassifier(n_estimators=1000, max_features=4, max_depth=6, min_samples_split=2, n_jobs=8,
                                  class_weight='balanced')
 
-    parameter_grid = {'max_features': [2, 3, 4, 5, 6, 7],
-                      'max_depth': [3, 4, 5, 6, 7, 8, 9, 10],
-                      'min_samples_split': [2, 3, 4, 5, 6, 7]}
+    # clf = MLPClassifier(max_iter=1000, tol=1e-4)
 
-    model = find_optimal_classifier(clf, X_training, y_training, parameter_grid, 5)
-
+    # set some parameters
     scoring = 'f1_macro'
+    k = 6
     model_path = '../../output/models/random_forest.joblib'
-    # model = train(X_training, y_training, clf, 5, model_path, scoring)
+
+    # parameter_grid = {'max_features': [3, 4, 5, 6],
+    #                   'max_depth': [5, 6, 7, 8],
+    #                   'min_samples_split': [2, 3, 4]}
+
+    # model = find_optimal_classifier(clf, X_training, y_training, parameter_grid, k, scoring)
+
+    # train
+    model = train(X_training, y_training, clf, k, model_path, scoring)
+
+    # evaluation
     y_predicted = model.predict(X_validation)
     cm = confusion_matrix(y_validation, y_predicted)
-    print(cm)
+    print('[[{}  {}]   --> {}\n [{}  {}]]   --> {}'.format(cm[0][0], cm[0][1], cm[0][0] / sum(cm[0]),
+                                                           cm[1][0], cm[1][1], cm[1][1] / sum(cm[1])))
+
+    # start = timer()
+    # model = load(model_path)
+    # X_new = load_words_to_list('../../output/training_data/predicted_data.txt')
+    # export_predicted_words(X_new, model, '../../output/training_data/predicted_and_label.csv')
+    # end = timer()
+    # print('Prediction and export took {}s!'.format(end-start))
 
 
 if __name__ == '__main__':

@@ -68,3 +68,13 @@ def appearance_per_doc_length(word, documents):
         avg += counter / doc_length
 
     return [avg / len(documents), number_appearances / len(documents)]
+
+
+def normed_word_vector(word, nlp):
+    """ Returns the L2 norm of the words vector
+
+    :param word: word
+    :param nlp: nlp model
+    :return: float
+    """
+    return nlp(word).vector_norm

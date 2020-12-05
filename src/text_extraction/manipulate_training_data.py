@@ -46,8 +46,8 @@ def transform_to_lemma(original_path, output_path):
     :param original_path: path of original file
     :param output_path: path for the new file
     """
-    file_old = open(original_path, 'r')
-    file_new = open(output_path, 'w')
+    file_old = open(original_path, 'r', encoding='utf-8')
+    file_new = open(output_path, 'w', encoding='utf-8')
 
     print('Loading nlp model...')
     nlp = spacy.load('de_core_news_lg')
@@ -62,15 +62,53 @@ def transform_to_lemma(original_path, output_path):
     file_new.close()
 
 
+def load_words_to_list(file_path):
+    """ Reads a file line by line and adds words to a list
+
+    :param file_path: Path to file
+    :return: list
+    """
+    
+    word_list = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line in f.readlines():
+            word_list.append(line.split('\n')[0])
+
+    f.close()
+    
+    return word_list
+
+
+def add_label_to_words(words, label, file_path):
+    """ Takes a list of words, adds labels to them and exports them to a csv file
+    Assumption: All words have the same label
+
+    :param words: list of words
+    :param label: label
+    :param file_path: output file path
+    """
+    with open(file_path, 'w', encoding='utf-8') as f:
+        for word in words:
+            f.write('{},{}\n'.format(word, label))
+
+    f.close()
+
+
 def main():
-    csv_file = '../../output/csv/wikipedia_lemmas.csv'
-    original = '../../output/training_small_negative_extended.txt'
-    output_path = '../../output/training_data/training_small_negative_extended2.txt'
+    # csv_file = '../../output/csv/dictionary_lemmas.csv'
+    # original = '../../output/training_data/empty'
+    # output_path = '../../output/training_data/predicted_data.txt'
     # extend_training_data(csv_file, original, output_path)
 
-    old = '../../output/training_small_positive.txt'
-    new = '../../output/training_small_positive_lemmas.txt'
-    transform_to_lemma(old, new)
+    # old = '../../output/training_data/training_small_positive.txt'
+    # new = '../../output/training_data/training_small_positive_lemmas.txt'
+    # transform_to_lemma(old, new)
+
+    # print(load_words_to_list('../../output/training_data/training_small_positive.txt'))
+
+    input_path = '../../output/training_data/training_small_negative_extended2.txt'
+    output_path = '../../output/training_data/training_large_negative_labeled.txt'
+    add_label_to_words(load_words_to_list(input_path), 0, output_path)
 
 
 if __name__ == '__main__':
