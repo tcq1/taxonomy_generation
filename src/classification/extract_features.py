@@ -78,3 +78,13 @@ def normed_word_vector(word, nlp):
     :return: float
     """
     return nlp(word).vector_norm
+
+
+def get_suffix(word, nlp):
+    """ Checks if the word is a stop word.
+
+    :param word: word
+    :param nlp: spacy model
+    :return: boolean
+    """
+    return nlp(word)[0].suffix

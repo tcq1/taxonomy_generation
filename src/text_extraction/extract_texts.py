@@ -3,6 +3,7 @@ import pdfminer
 import spacy
 import wikipedia
 
+from newsapi import NewsApiClient
 from timeit import default_timer as timer
 
 from src.text_extraction.csv_manager import *
@@ -47,9 +48,11 @@ def get_tokens(nlp, text):
     return word_dict, lemma_dict
 
 
-def extract_pdfs():
+def extract_pdfs(nlp):
     """ Extracts all tokens from pdf files and exports them to csv files. One csv file contains the words unmodified,
     the other one contains the lemmas of the words.
+
+    :param nlp: spacy model
     """
 
     # input and output paths
@@ -61,9 +64,6 @@ def extract_pdfs():
     documents = []
     documents_lemmas = []
     missing = {}
-
-    # load spacy model
-    nlp = spacy.load('de_core_news_lg')
 
     start_time = timer()
 
@@ -101,10 +101,11 @@ def extract_pdfs():
     print('Done after {}s'.format(end_time - start_time))
     
 
-def extract_wikipedia(output_csv, output_lemmas, num_pages):
+def extract_wikipedia(nlp, output_csv, output_lemmas, num_pages):
     """ Extracts all tokens from random wikipedia pages and exports them to csv files.
         One csv file contains the words unmodified, the other one contains the lemmas of the words.
 
+        :param nlp: spacy model
         :param output_csv: output path for normal token.text
         :param output_lemmas: output path for token.lemma_
         :param num_pages: number of wikipedia pages to scan
@@ -114,9 +115,6 @@ def extract_wikipedia(output_csv, output_lemmas, num_pages):
     wikipedia.set_lang('de')
     wikipedia_articles = []
     wikipedia_articles_lemmas = []
-
-    # get spacy model
-    nlp = spacy.load('de_core_news_lg')
 
     start_time = timer()
 
@@ -158,12 +156,69 @@ def extract_wikipedia(output_csv, output_lemmas, num_pages):
     print('Done after {}s'.format(end_time - start_time))
 
 
-def main():
-    # output paths
-    output_csv = '../../output/wikipedia_1000.csv'
-    output_lemmas = '../../output/wikipedia_lemmas_1000.csv'
+def extract_news_articles(nlp, output_csv, output_lemmas):
+    """ Extracts all tokens from title and descriptions of German news article providers.
 
-    extract_wikipedia(output_csv, output_lemmas, 1000)
+    :param nlp: spacy model
+    :param output_csv: output path for normal token.text
+    :param output_lemmas: output path for token.lemma_
+    """
+    # initialize newsapi
+    api_key = '2f4a6aa461194cce948ded99f35fae6f'
+    newsapi = NewsApiClient(api_key)
+
+    start_time = timer()
+
+    # get German news providers
+    sources = [src['id'] for src in newsapi.get_sources(language='de')['sources']]
+    sources_string = sources[0]
+    for i in range(1, len(sources)):
+        sources_string += ',{}'.format(sources[i])
+
+    # get articles
+    articles = newsapi.get_everything(language='de', sources=sources_string, page_size=100)
+    print('Total results: {}'.format(articles['totalResults']))
+
+    news_articles = []
+    news_articles_lemmas = []
+
+    # TODO: add param to specify number of articles
+
+    for article in articles['articles']:
+        # get article content
+        content = article['title'] + '. ' + article['description']
+        if article['content'] is not None:
+            content += '. ' + article['content']
+
+        # extract words and lemmas from article
+        word_dict, lemma_dict = get_tokens(nlp, content)
+        # sort dictionaries descending by appearance of tokens
+        word_dict = {k: v for k, v in sorted(word_dict.items(), key=lambda item: item[1], reverse=True)}
+        lemma_dict = {k: v for k, v in sorted(lemma_dict.items(), key=lambda item: item[1], reverse=True)}
+        # add tokens of pages to list
+        if len(word_dict) > 0:
+            news_articles.append(word_dict)
+        if len(lemma_dict) > 0:
+            news_articles_lemmas.append(lemma_dict)
+
+    # export lists to csv files
+    export_docs(news_articles, output_csv)
+    export_docs(news_articles_lemmas, output_lemmas)
+
+    end_time = timer()
+    print('Done after {}s'.format(end_time - start_time))
+
+
+def main():
+    # load spacy model
+    nlp = spacy.load('de_core_news_lg')
+
+    # output paths
+    output_csv = '../../output/csv/news.csv'
+    output_lemmas = '../../output/csv/news_lemmas.csv'
+
+    # extract_wikipedia(output_csv, output_lemmas, 1000)
+    extract_news_articles(nlp, output_csv, output_lemmas)
 
 
 if __name__ == '__main__':

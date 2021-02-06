@@ -285,3 +285,51 @@ erweiterte Testdaten + vorherige Testdaten (positiv gelabelt + unterschiedlich g
         Total time for training: 7.986368899999988s
         [[4167  233]   --> 0.9470454545454545
          [18  115]]   --> 0.8646616541353384
+
+neues Feature: get_suffix:
+    negative small:
+        Score = [0.77696258 0.80350877 0.75994257 0.78834838 0.73839959 0.72792793], mean = 0.765848303511263
+        Importance:
+            Has capital letter: 7.110018999706014 %
+            Word length: 13.494593002927349 %
+            Number syllables: 3.7807449427347914 %
+            Appearance ratio in pdfs: 11.266693341420895 %
+            Appearances in pdfs: 1.7094134686507858 %
+            Appearance ratio in wikipedia articles: 22.779057118615803 %
+            Appearances in wikipedia articles: 13.743862542101231 %
+            Feature vector normed: 18.763002171964644 %
+            Suffix: 7.352614411878489 %
+        [[207  44]   --> 0.8247011952191236
+         [36  103]]   --> 0.7410071942446043
+        Total time for training: 20.508015500000003
+    negative medium:
+        Score = [0.76931434 0.76246334 0.75539654 0.77752468 0.75736425 0.77194894], mean = 0.7656686822658282
+        Score = [0.76633817 0.77820017 0.76262626 0.73777713 0.73856991 0.74316181], mean = 0.7544455753486137
+        Importance:
+            Has capital letter: 4.27309132728527 %
+            Word length: 17.735305337226546 %
+            Number syllables: 4.215827210732099 %
+            Appearance ratio in pdfs: 16.20119425415045 %
+            Appearances in pdfs: 10.768083643417334 %
+            Appearance ratio in wikipedia articles: 20.004882174205747 %
+            Appearances in wikipedia articles: 12.240660548710915 %
+            Feature vector normed: 9.770243232788074 %
+            Suffix: 4.790712271483554 %
+        [[474  117]   --> 0.8020304568527918
+         [20  114]]   --> 0.8507462686567164
+        Total time for training: 31.6480135
+    negative large:
+        Score = [0.75831166 0.75977481 0.742846   0.76428506 0.72336027 0.74998581], mean = 0.7497606013034067
+        Importance:
+            Has capital letter: 2.381233996595488 %
+            Word length: 2.702974529913679 %
+            Number syllables: 1.0904788245517125 %
+            Appearance ratio in pdfs: 16.58502818914361 %
+            Appearances in pdfs: 12.108436838102929 %
+            Appearance ratio in wikipedia articles: 29.73797559433254 %
+            Appearances in wikipedia articles: 29.611544598167434 %
+            Feature vector normed: 4.110625317223231 %
+            Suffix: 1.6717021119693827 %
+        [[4184  216]   --> 0.9509090909090909
+         [18  115]]   --> 0.8646616541353384
+        Total time for training: 159.0875338
