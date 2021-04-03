@@ -9,8 +9,7 @@ import spacy
 
 # load spacy nlp model
 nlp = spacy.load('de_core_news_lg')
-
-# load trained ml model
+# load model
 model_path = '../../output/models/random_forest.joblib'
 model = load(model_path)
 
@@ -69,7 +68,7 @@ class AppWindow(QMainWindow):
         """ Split up text in tokens and detect words.
         """
         # get input text
-        text = self.input_text.toPlainText()
+        text = self.input_text.toPlainText().replace('\n', ' ')
 
         # get words that need to be highlighted
         detected_words = get_positive_words(text)
@@ -82,7 +81,7 @@ class AppWindow(QMainWindow):
 
         # set output word list text
         word_list_text = ""
-        for word in detected_words:
+        for word in set(detected_words):
             word_list_text += word + "\n"
         self.output_word_list.setText(word_list_text)
 
@@ -105,10 +104,11 @@ def get_positive_words(text):
     :param text: string
     :return: list of words
     """
-    # find all tokens that contain letters
-    words = [token.text for token in nlp(text) if 'x' in token.shape_.lower()]
+    # find all tokens that contain letters and use their lemma
+    words = [token.lemma_ for token in nlp(text) if 'x' in token.shape_.lower()]
+    min_max_path = '../classification/datasets/default/'
 
-    return predict_words(words, model)
+    return predict_words(words, model, min_max_path)
 
 
 def highlight_text(text):

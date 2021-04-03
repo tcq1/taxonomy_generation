@@ -1,0 +1,12 @@
+Keras==2.4.3
+numpy==1.19.5
+joblib==1.0.1
+matplotlib==3.3.4
+newsapi==0.1.1
+pdfminer==20191125
+Pyphen==0.10.0
+PyQt5==5.15.4
+scikit_learn==0.24.1
+spacy==3.0.5
+tensorflow==2.4.1
+wikipedia==1.4.0

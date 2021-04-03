@@ -39,13 +39,6 @@ def replace_cid_codes(string):
     :return: string with relevant cid codes replaced
     """
 
-    # characters
-    string = string.replace('(cid:160)', ' ')
-    string = string.replace('(cid:150)', '-')
-    string = string.replace('(cid:146)', "'")
-    string = string.replace('(cid:132)', '"')
-    string = string.replace('(cid:147)', '"')
-
     # letters
     string = string.replace('(cid:228)', 'ä')
     string = string.replace('(cid:246)', 'ö')

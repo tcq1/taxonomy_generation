@@ -133,7 +133,6 @@ Vickers-Härteprüfung,1
 Rockwell-Härteeindringkörper,1
 Maschinenhysterese,1
 Toleranzbereich,1
-anisotrop,1
 Schmierstoff,1
 Sinterhärte,1
 Intervall,1
@@ -141,10 +140,11 @@ magnetisch,1
 kalibriert,1
 prüfen,1
 maschinell,1
-ablesen,1
 kontinuierlich,1
 konvex,1
 konkav,1
 gekrümmt,1
 Betriebszeit,1
 Messgeräte,1
+normiert,1
+Bauteil,1

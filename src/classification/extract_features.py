@@ -1,4 +1,5 @@
 import pyphen
+import numpy as np
 
 
 def get_number_syllables(word):
@@ -40,7 +41,7 @@ def appearance_per_doc_length(word, documents):
     and number of documents in which the word appears.
 
     :param word: word
-    :param documents: csv file with dictionaries of words from documents
+    :param documents: list of dictionaries of words from documents
     :return: [appearance ratio, appearances]
     """
 
@@ -70,6 +71,36 @@ def appearance_per_doc_length(word, documents):
     return [avg / len(documents), number_appearances / len(documents)]
 
 
+def count_word_in_documents(word, documents):
+    """ Count number of documents in which the word appears.
+
+    :param word: word
+    :param documents: list of dictionaries of words from documents
+    :return: int
+    """
+    counter = 0
+    for document in documents:
+        if word in document.keys():
+            counter += 1
+
+    return counter
+
+
+def tf_idf(word, documents):
+    """ Calculate the term frequency, inverse document frequency score vector.
+
+    :param word: word
+    :param documents: list of dictionaries of words from documents
+    :return: list of floats
+    """
+    vector = np.array([])
+    for document in documents:
+        vector = np.append(document[word])
+    vector *= np.log(len(documents) / count_word_in_documents(word, documents))
+
+    return vector
+
+
 def normed_word_vector(word, nlp):
     """ Returns the L2 norm of the words vector
 
@@ -81,10 +112,30 @@ def normed_word_vector(word, nlp):
 
 
 def get_suffix(word, nlp):
-    """ Checks if the word is a stop word.
+    """ Return suffix of a word.
+
+    :param word: word
+    :param nlp: spacy model
+    :return: int
+    """
+    return nlp(word)[0].suffix
+
+
+def get_prefix(word, nlp):
+    """ Return prefix of a word
+
+    :param word: word
+    :param nlp: spacy model
+    :return: int
+    """
+    return nlp(word)[0].prefix
+
+
+def is_stop_word(word, nlp):
+    """ Check if a word is a stop word.
 
     :param word: word
     :param nlp: spacy model
     :return: boolean
     """
-    return nlp(word)[0].suffix
+    return nlp(word)[0].is_stop

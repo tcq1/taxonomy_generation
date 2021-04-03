@@ -2,14 +2,17 @@ import numpy as np
 import spacy
 
 from joblib import dump, load
+import matplotlib.pyplot as plt
+from sklearn import svm
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
+from sklearn.metrics import confusion_matrix, plot_confusion_matrix
+from sklearn.model_selection import cross_val_score, train_test_split, RandomizedSearchCV, GridSearchCV
 from timeit import default_timer as timer
 
 from src.classification.extract_features import *
 from src.text_extraction.csv_manager import import_docs
-from src.text_extraction.manipulate_training_data import load_words_to_list
+from src.classification.evaluation import calc_recall, calc_precision, calc_f1
 
 
 documents = None
@@ -31,7 +34,10 @@ def get_feature_vector(word):
                      appearance_ratio_pdfs, appearances_pdfs,
                      appearance_ratio_wikipedia, appearance_wikipedia,
                      normed_word_vector(word, nlp),
-                     get_suffix(word, nlp)])
+                     get_suffix(word, nlp),
+                     get_prefix(word, nlp),
+                     is_stop_word(word, nlp)
+                     ])
 
 
 def get_feature_names():
@@ -45,7 +51,9 @@ def get_feature_names():
             'Appearance ratio in pdfs', 'Appearances in pdfs',
             'Appearance ratio in wikipedia articles', 'Appearances in wikipedia articles',
             'Feature vector normed',
-            'Suffix']
+            'Suffix',
+            'Prefix',
+            'Is stop word']
 
 
 def get_feature_vector_of_list(words):
@@ -70,7 +78,7 @@ def load_data(path):
         for line in lines:
             l = line.split(',')
             words.append(l[0])
-            labels.append((l[1]))
+            labels.append((int(l[1])))
 
     return words, labels
 
@@ -110,26 +118,32 @@ def get_feature_importance(clf):
     return importance_dict
 
 
-def normalize_data(x_train, x_validate):
+def normalize_data(x_train, x_validate, file_path):
     """ Min-max normalize the datasets.
 
     :param x_train: List of feature vectors of training data
     :param x_validate: List of feature vectors of validation data
+    :param file_path: file path to directory where to store min and max values
     :return: x_train, x_validate
     """
-    min_x = x_train.min(axis=0)
-    max_x = x_train.max(axis=0)
+    min_x = np.min(x_train, axis=0)
+    max_x = np.max(x_train, axis=0)
+
+    np.savetxt(file_path + 'min_x', min_x)
+    np.savetxt(file_path + 'max_x', max_x)
+
     x_train = (x_train - min_x) / (max_x - min_x)
     x_validate = (x_validate - min_x) / (max_x - min_x)
 
     return x_train, x_validate
 
 
-def get_data(file_paths, test_size):
+def get_data(file_paths, test_size, export_path=None):
     """ Load training data and split up in test and validation data sets.
 
     :param file_paths: List of paths to iterate through
     :param test_size: Value between 0 and 1 determining the proportion of validation data
+    :param export_path: If specified store data in following structure: output_path/x_train.csv, output_path/...
     :return: (x_train, y_train), (x_validate, y_validate)
     """
 
@@ -144,7 +158,13 @@ def get_data(file_paths, test_size):
     x_train, x_validate, y_train, y_validate = train_test_split(get_feature_vector_of_list(training_data), labels,
                                                                 test_size=test_size, random_state=1)
 
-    x_train, x_validate = normalize_data(x_train, x_validate)
+    normalize_data(x_train, x_validate, 'datasets/default/')
+
+    if export_path is not None:
+        np.savetxt(f'{export_path}/x_train.csv', x_train, delimiter=',')
+        np.savetxt(f'{export_path}/x_validate.csv', x_validate, delimiter=',')
+        np.savetxt(f'{export_path}/y_train.csv', y_train, delimiter=',')
+        np.savetxt(f'{export_path}/y_validate.csv', y_validate, delimiter=',')
 
     return x_train, x_validate, y_train, y_validate
 
@@ -160,72 +180,154 @@ def print_feature_importance(clf):
         print('{}: {} %'.format(key, importance[key]))
 
 
-def train(X, y, clf, k, output_path, scoring):
+def train(x, y, clf, k, scoring, output_path=None):
     """ Trains a model and returns it
-    :param X: Input data array of shape [n_samples, n_features]
+    :param x: Input data array of shape [n_samples, n_features]
     :param y: Label array of shape [n_samples]
     :param clf: Classifier
     :param k: Number of subsets to divide the training data into for cross validation
-    :param output_path: Output path for model
     :param scoring: scoring measure for k-fold cv
+    :param output_path: Output path for model
     :return: model
     """
-    clf.fit(X, y)
-    score = cross_val_score(clf, X, y, cv=k, scoring=scoring)
+    clf.fit(x, y)
+    score = cross_val_score(clf, x, y, cv=k, scoring=scoring)
     print('Score = {}, mean = {}'.format(score, score.mean()))
     try:
         print_feature_importance(clf)
     except AttributeError:
         print("Couldn't get feature importance for this classifier!")
 
-    file_path = output_path
-    export_model(clf, file_path)
+    if output_path is not None:
+        export_model(clf, output_path)
 
     return clf
 
 
-def find_optimal_classifier(clf, X_train, y_train, param_grid, k, scoring):
+def random_forest_grid():
+    """ Return grid for RandomSearchCV for the Random Forest classifier
+
+    :return: dictionary
+    """
+    n_estimators = [int(x) for x in np.linspace(start=200, stop=2000, num=10)]
+    max_features = [i for i in range(1, 11)]
+    max_depth = [i for i in range(1, 15)]
+    min_samples_split = [i for i in range(2, 10)]
+    min_samples_leaf = [i for i in range(1, 10)]
+
+    grid = {'n_estimators': n_estimators,
+            'max_features': max_features,
+            'max_depth': max_depth,
+            'min_samples_split': min_samples_split,
+            'min_samples_leaf': min_samples_leaf}
+
+    return grid
+
+
+def random_forest_grid_fine():
+    """ Return the finer grid for GridSearchCV for the Random Forest classifier
+
+    :return: dictionary
+    """
+    n_estimators = [200]
+    max_features = [2, 3, 4, 5]
+    max_depth = [15, 16, 17]
+    min_samples_split = [2, 3, 4, 5]
+    min_samples_leaf = [1, 2, 3]
+
+    grid = {'n_estimators': n_estimators,
+            'max_features': max_features,
+            'max_depth': max_depth,
+            'min_samples_split': min_samples_split,
+            'min_samples_leaf': min_samples_leaf}
+
+    return grid
+
+
+def svm_grid():
+    """ Return grid for RandomSearchCV for the SVM classifier
+
+    :return: dictionary
+    """
+    C = [0.1, 1, 10, 100]
+    kernel = ['linear', 'poly', 'rbf', 'sigmoid']
+    degree = [2, 3, 4, 5, 6, 7, 8]
+    coef0 = [0.1, 1, 10, 100]
+    gamma = ['scale', 'auto']
+    shrinking = [True, False]
+    probability = [True, False]
+
+    grid = {'C': C,
+            'kernel': kernel,
+            'degree': degree,
+            'coef0': coef0,
+            'gamma': gamma,
+            'shrinking': shrinking,
+            'probability': probability}
+
+    return grid
+
+
+def knn_grid():
+    """ Return grid for RandomSearchCV for the KNN classifier
+
+    :return: dictionary
+    """
+    n_neighbors = [i for i in range(1, 40)]
+    weights = ['distance', 'uniform']
+    p = [1, 2, 3, 4]
+
+    grid = {'n_neighbors': n_neighbors,
+            'weights': weights,
+            'p': p}
+
+    return grid
+
+
+def find_optimal_classifier(clf, grid, x_train, y_train, k, scoring, iterations):
     """ Uses randomized search to find the best classifier.
 
-    :param clf: Model
-    :param X_train: Training data input vectors
+    :param clf: classifier
+    :param grid: grid for RandomSearchCV
+    :param x_train: Training data input vectors
     :param y_train: Training data labels
-    :param param_grid: Parameter grid in which to search for
     :param k: Number of subsets to divide the training data into for cross validation
     :param scoring: Scoring method
+    :param iterations: number of random search iterations
     :return: Best model
     """
+    search = RandomizedSearchCV(estimator=clf, param_distributions=grid, n_iter=iterations, cv=k, n_jobs=-1,
+                                scoring=scoring, verbose=0)
+    search.fit(x_train, y_train)
 
-    print('Starting to find optimal classifier...')
-
-    start = timer()
-    search = GridSearchCV(clf, param_grid=param_grid, cv=k, scoring=scoring, n_jobs=8)
-    search.fit(X_train, y_train)
-    end = timer()
-
-    print(search.cv_results_)
-    print('Optimal parameters: '.format(search.get_params()))
-    print('Best score: '.format(search.best_score_))
-    print('Tuning hyperparameters took {}s'.format(end-start))
+    print(f'Best params were:\n{search.best_params_}')
+    print(f'Score was {search.best_score_}')
 
     return search.best_estimator_
 
 
-def predict_words(words, clf):
+def predict_words(words, clf, min_max_path):
     """ Makes prediction for a list of words and returns a list of positive labeled words.
 
     :param words: list of words
     :param clf: classifier
+    :param min_max_path: path to folder with min max values
     :return: list of words
     """
     if wikipedia is None or documents is None:
         initialize_datasets()
 
-    predictions = clf.predict(get_feature_vector_of_list(words))
+    x_min = np.loadtxt(min_max_path + 'min_x')
+    x_max = np.loadtxt(min_max_path + 'max_x')
+
+    feature_vectors = get_feature_vector_of_list(words)
+    for i in range(len(feature_vectors)):
+        feature_vectors[i] = (feature_vectors[i] - x_min) / (x_max - x_min)
+    predictions = clf.predict(feature_vectors)
 
     output_words = []
     for i in range(len(words)):
-        if predictions[i] == '1':
+        if predictions[i] == 1:
             output_words.append(words[i])
 
     return output_words
@@ -260,67 +362,156 @@ def initialize_datasets():
     wikipedia = import_docs(wikipedia_path)
 
 
-def load_datasets():
+def load_datasets(import_path=None, export_path=None, features=None):
     """ Load datasets, split them in training and validation sets and normalize the features.
 
+    If import_path is specified load datasets from a file.
+    If export_path is specified store datasets in files.
+
+    :param import_path: Path to directory containing files to import training data from
+    :param export_path: Path to directory to store files in
+    :param features: List of features to choose
     :return: X_training, X_validation, y_training, y_validation
     """
-    positive_path = '../../output/training_data/training_small_positive_lemmas_labeled.txt'
-    negative_small = '../../output/training_data/training_small_negative_labeled.txt'
-    negative_medium = '../../output/training_data/training_medium_negative_labeled.txt'
-    negative_large = '../../output/training_data/training_large_negative_labeled.txt'
-    extra_data = '../../output/training_data/done.csv'
-    initialize_datasets()
+    if features is None:
+        features = list(range(11))
+    if import_path is not None:
+        x_train = np.loadtxt(f'{import_path}/x_train.csv', delimiter=',')[:, features]
+        x_validate = np.loadtxt(f'{import_path}/x_validate.csv', delimiter=',')[:, features]
+        y_train = np.loadtxt(f'{import_path}/y_train.csv', delimiter=',')
+        y_validate = np.loadtxt(f'{import_path}/y_validate.csv', delimiter=',')
 
-    # get split datasets
-    return get_data([positive_path, negative_large, extra_data], 0.3)
+        return x_train, x_validate, y_train, y_validate
+    else:
+        positive_path = '../../output/training_data/training_small_positive_lemmas_labeled.txt'
+        negative_small = '../../output/training_data/training_small_negative_labeled.txt'
+        negative_medium = '../../output/training_data/training_medium_negative_labeled.txt'
+        negative_large = '../../output/training_data/training_large_negative_labeled.txt'
+        extra_data = '../../output/training_data/extra_data.txt'
+        initialize_datasets()
+
+        # get split datasets
+        return get_data([positive_path, negative_large, extra_data], 0.3, export_path)
+
+
+def evaluation(x_validate, y_validate, model):
+    """ Evaluate a model and print the confusion matrix.
+
+    :param x_validate: feature data of validation set
+    :param y_validate: label data of validation set
+    :param model: the model
+    """
+    y_predicted = model.predict(x_validate)
+    cm = confusion_matrix(y_validate, y_predicted)
+    plot_confusion_matrix(model, x_validate, y_validate)
+    plt.savefig('../../output/plots/confusion_matrix.svg', format='svg')
+    print('[[{}  {}]\n [{}  {}]]'.format(cm[0][0], cm[0][1], cm[1][0], cm[1][1]))
+    print(f'F1 = {calc_f1(cm[1][1], cm[0][1], cm[1][0])}')
+    print(f'Recall = {calc_recall(cm[1][1], cm[1][0])}')
+    print(f'Precision = {calc_precision(cm[1][1], cm[0][1])}')
+
+
+def get_best_classifiers(x_train, x_validate, y_train, y_validate, scoring, k):
+    """ Get best classifiers by using randomized search on Random forest classifier, KNN and SVM classifier.
+
+    :param x_train: Training data input vectors
+    :param x_validate: Validation data input vectors
+    :param y_train: Training data labels
+    :param y_validate: Validation data labels
+    :param k: Number of subsets to divide the training data into for cross validation
+    :param scoring: Scoring method
+    :return: best_rfc, best_knn, best_svm
+    """
+    start_time = timer()
+
+    print('Find optimal RFC...')
+    rfc = find_optimal_classifier(RandomForestClassifier(class_weight='balanced', n_jobs=-1), random_forest_grid(),
+                                  x_train, y_train, k, scoring, iterations=300)
+    evaluation(x_validate, y_validate, rfc)
+    print(f'Done with search for RFC after {timer() - start_time}s.\n')
+    start_time = timer()
+
+    print('Find optimal KNN...')
+    knn = find_optimal_classifier(KNeighborsClassifier(n_jobs=-1), knn_grid(),
+                                  x_train, y_train, k, scoring, iterations=300)
+    evaluation(x_validate, y_validate, knn)
+    print(f'Done with search for KNN after {timer() - start_time}s.\n')
+    start_time = timer()
+
+    print('Find optimal SVM...')
+    svmc = find_optimal_classifier(svm.SVC(class_weight='balanced'), svm_grid(),
+                                   x_train, y_train, k, scoring, iterations=100)
+    evaluation(x_validate, y_validate, svmc)
+    print(f'Done with search for SVM after {timer() - start_time}s.\n')
+
+    return rfc, knn, svmc
+
+
+def rf_grid_search(x_train, y_train, k, scoring):
+    """ Perform the grid search on the random forest.
+
+    :param x_train: Training set input
+    :param y_train: Training set labels
+    :param k: Number of subsets to divide the training data into for cross validation
+    :param scoring: scoring method
+    :return: model
+    """
+    search = GridSearchCV(estimator=RandomForestClassifier(class_weight='balanced', n_jobs=-1),
+                          param_grid=random_forest_grid_fine(),
+                          cv=k, scoring=scoring, n_jobs=-1)
+    search.fit(x_train, y_train)
+
+    print(f'Best params were:\n{search.best_params_}')
+    print(f'Score was {search.best_score_}')
+
+    return search.best_estimator_
 
 
 def main():
-    """ Load training data
-    """
+    # Load training data
     start_time = timer()
-    x_train, x_validate, y_train, y_validate = load_datasets()
-    print(f"Done loading datasets after {timer() - start_time}s.")
-
-    """ Model
-    """
-    # instantiate classifier
-    clf = RandomForestClassifier(n_estimators=1000, max_features=4, max_depth=6, min_samples_split=2, n_jobs=8,
-                                 class_weight='balanced')
-
-    # clf = MLPClassifier(max_iter=1000, tol=1e-4)
-
+    x_train, x_validate, y_train, y_validate = load_datasets(import_path='datasets/default')
+    print(f'Got data after {timer() - start_time}s')
     # set some parameters
     scoring = 'f1_macro'
     k = 6
     model_path = '../../output/models/random_forest.joblib'
 
-    # parameter_grid = {'max_features': [3, 4, 5, 6],
-    #                   'max_depth': [5, 6, 7, 8],
-    #                   'min_samples_split': [2, 3, 4]}
+    # randomized search
+    # rfc, knn, svmc = get_best_classifiers(x_train, x_validate, y_train, y_validate, scoring, k)
 
-    # model = find_optimal_classifier(clf, X_training, y_training, parameter_grid, k, scoring)
+    # grid search on rfc
+    # rfc = rf_grid_search(x_train, y_train, k, scoring)
+    # print(f'Grid search done after {timer() - start_time}')
 
-    # train
-    model = train(x_train, y_train, clf, k, model_path, scoring)
+    # these classifiers were estimated with the randomized search
+    rfc = RandomForestClassifier(n_estimators=200, min_samples_split=3, min_samples_leaf=2, max_features=3,
+                                 max_depth=17, bootstrap=True, class_weight='balanced', n_jobs=-1)
+    knn = KNeighborsClassifier(weights='distance', p=1, n_neighbors=8, n_jobs=-1)
+    svmc = svm.SVC(shrinking=True, probability=True, kernel='rbf', gamma='scale', degree=2, coef0=100, C=100,
+                   class_weight='balanced')
 
-    # evaluation
-    y_predicted = model.predict(x_validate)
-    cm = confusion_matrix(y_validate, y_predicted)
-    print('[[{}  {}]   --> {}\n [{}  {}]]   --> {}'.format(cm[0][0], cm[0][1], cm[0][0] / sum(cm[0]),
-                                                           cm[1][0], cm[1][1], cm[1][1] / sum(cm[1])))
-    end_time = timer()
-    print('Total time for training: {}'.format(end_time - start_time))
+    start_time = timer()
+    rfc = train(x_train, y_train, rfc, k, scoring)
+    print(f'Done with training for RFC after {timer() - start_time}s.\n')
+    start_time = timer()
+    evaluation(x_validate, y_validate, rfc)
+    print(f'Done with evaluation for RFC after {timer() - start_time}s.\n')
+    # store model
+    dump(rfc, model_path)
 
-    """ Load model and predict
-    """
-    # start = timer()
-    # model = load(model_path)
-    # X_new = load_words_to_list('../../output/training_data/predicted_data.txt')
-    # export_predicted_words(X_new, model, '../../output/training_data/predicted_and_label.csv')
-    # end = timer()
-    # print('Prediction and export took {}s!'.format(end-start))
+    knn = train(x_train, y_train, knn, k, scoring)
+    print(f'Done with training for KNN after {timer() - start_time}s.\n')
+    start_time = timer()
+    evaluation(x_validate, y_validate, knn)
+    print(f'Done with evaluation for KNN after {timer() - start_time}s.\n')
+    start_time = timer()
+
+    svmc = train(x_train, y_train, svmc, k, scoring)
+    print(f'Done with training for SVM after {timer() - start_time}s.\n')
+    start_time = timer()
+    evaluation(x_validate, y_validate, svmc)
+    print(f'Done with evaluation for SVM after {timer() - start_time}s.\n')
 
 
 if __name__ == '__main__':

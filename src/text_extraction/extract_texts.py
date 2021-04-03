@@ -96,6 +96,8 @@ def extract_pdfs(nlp):
 
     end_time = timer()
 
+    print(f'Processed {len(documents)} files!')
+
     if len(missing.keys()) > 0:
         print('Couldn\'t convert {} pdf files.'.format(len(missing.keys())))
     print('Done after {}s'.format(end_time - start_time))
@@ -159,6 +161,8 @@ def extract_wikipedia(nlp, output_csv, output_lemmas, num_pages):
 def extract_news_articles(nlp, output_csv, output_lemmas):
     """ Extracts all tokens from title and descriptions of German news article providers.
 
+    Note: this text corpus was not used
+
     :param nlp: spacy model
     :param output_csv: output path for normal token.text
     :param output_lemmas: output path for token.lemma_
@@ -214,11 +218,12 @@ def main():
     nlp = spacy.load('de_core_news_lg')
 
     # output paths
-    output_csv = '../../output/csv/news.csv'
-    output_lemmas = '../../output/csv/news_lemmas.csv'
+    output_csv = '../../output/csv/documents2.csv'
+    output_lemmas = '../../output/csv/documents_lemma2.csv'
 
-    # extract_wikipedia(output_csv, output_lemmas, 1000)
-    extract_news_articles(nlp, output_csv, output_lemmas)
+    extract_pdfs(nlp)
+    extract_wikipedia(nlp, output_csv, output_lemmas, 1000)
+    # extract_news_articles(nlp, output_csv, output_lemmas)
 
 
 if __name__ == '__main__':
