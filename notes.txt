@@ -1,0 +1,792 @@
+Features: feature_names = ['Has capital letter', 'Word length', 'Number syllables',
+                           'Appearance ratio in pdfs', 'Appearances in pdfs',
+                           'Appearance ratio in wikipedia articles', 'Appearances in wikipedia articles']
+negativer Testdatensatz: 150 Wörter
+Modell Parameter: RandomForestClassifier(n_estimators=1000, max_features=None, max_depth=6,
+                                         min_samples_split=2, n_jobs=12)
+Dokumente mit Lemmas verwendet
+10-fold Cross Validation score: ca. 0.77
+Feature importance: {'Has capital letter': 5.204111119053627,
+                     'Word length': 31.401355900664505,
+                     'Number syllables': 9.26098716288617,
+                     'Appearance ratio in pdfs': 19.40455139046279,
+                     'Appearances in pdfs': 4.297463221121065,
+                     'Appearance ratio in wikipedia articles': 21.664351394289504,
+                     'Appearances in wikipedia articles': 8.767179811522332}
+
+Änderung: negativer Testdatensatz erweitert auf 1265 Zeichen
+        --> Cross val score: ca. 0.91
+        Feature importance: {'Has capital letter': 4.5938789371426605,
+                             'Word length': 39.394412858081395,
+                             'Number syllables': 5.362683678870906,
+                             'Appearance ratio in pdfs': 19.762329426072515,
+                             'Appearances in pdfs': 5.16965372921173,
+                             'Appearance ratio in wikipedia articles': 16.049473073904714,
+                             'Appearances in wikipedia articles': 9.667568296716079}
+
+Änderung: Dokumente ohne Lemmas verwendet:
+        --> Cross val score: ca. 0.92
+        Feature importance: {'Has capital letter': 5.657450785653602,
+                             'Word length': 41.413060648796815,
+                             'Number syllables': 6.555920248427184,
+                             'Appearance ratio in pdfs': 20.44468316051423,
+                             'Appearances in pdfs': 5.941683275591057,
+                             'Appearance ratio in wikipedia articles': 13.697671080008858,
+                             'Appearances in wikipedia articles': 6.289530801008265}
+
+Änderung: negativer Testdatensatz erweitert auf 13595 Wörter
+        -- Cross val score: ca. 0.98-0.99
+        Feature importance: {'Has capital letter': 11.230012695443035,
+                             'Word length': 38.23398128627322,
+                             'Number syllables': 3.332548774919186,
+                             'Appearance ratio in pdfs': 24.850159018558436,
+                             'Appearances in pdfs': 5.037969000986624,
+                             'Appearance ratio in wikipedia articles': 11.718549986280417,
+                             'Appearances in wikipedia articles': 5.596779237539085}
+
+Einführung Confusion Matrix:
+        30% Trainingsdaten zur Validierung benutzt
+        sehr großer Datensatz: [[4181 9]
+                                [ 23 20]]
+                                --> negativen Daten gut predicted (99.8%), positive Daten nur zu unter 50% richtig predicted
+        mittelgroßer Datensatz: [[362 18]
+                                 [ 22 23]]
+                                --> negative Daten etwas schlechter predicted (95%), positive Daten immer noch unter 50%
+        kleiner Datensatz, beide gleich groß:
+                                [[41 6]
+                                 [8 35]
+                                --> negative Daten noch schlechter predicted (87%), positive Daten besser predicted
+
+Class weights balanced:
+        normaler Datensatz:
+            Score = [0.76136364 0.78559274 0.66666667 0.71363636 0.80778032], mean = 0.7470079453362253
+            Importance:
+                Has capital letter: 4.505736535700791%
+                Word length: 23.859155943334677%
+                Number syllables: 11.693500527894399%
+                Appearance ratio in pdfs: 19.29590404003718%
+                Appearances in pdfs: 7.282019127171732%
+                Appearance ratio in wikipedia articles: 17.33549635306581%
+                Appearances in wikipedia articles: 16.028187472795423%
+            [[40  7]
+             [ 8 35]]
+
+        extended Datensatz:
+            Score = [0.69980507 0.79305792 0.74464286 0.79398844 0.79545455], mean = 0.7653897668216196
+            Importance: {'Has capital letter': 4.720721024197644,
+                         'Word length': 25.583564669852564,
+                         'Number syllables': 8.407292782928018,
+                         'Appearance ratio in pdfs': 20.078593592484324,
+                         'Appearances in pdfs': 12.010729882860847,
+                         'Appearance ratio in wikipedia articles': 17.896474618125588,
+                         'Appearances in wikipedia articles': 11.302623429550993}
+            [[338  42]
+             [ 12  33]]
+
+        extended2 Datensatz:
+            Score = [0.71356904 0.71911624 0.69182037 0.68854235 0.68854235], mean = 0.7003180679004327
+            Importance:
+                Has capital letter: 2.71696097232397 %
+                Word length: 5.463139326288392 %
+                Number syllables: 1.7073298751222563 %
+                Appearance ratio in pdfs: 15.943809685018975 %
+                Appearances in pdfs: 10.013855547394272 %
+                Appearance ratio in wikipedia articles: 32.464033214378674 %
+                Appearances in wikipedia articles: 31.690871379473467 %
+                Total time for training: 13.2139168s
+            [[4082  108]
+             [   7   36]]
+
+Neuronales Netz: Keine feature importance verfügbar für neuronale Netze
+    Versuch: nur max_iter=1000 verändert
+        normaler Datensatz:
+            Score = [0.68602645 0.69030062 0.61556064 0.3968254  0.78559274], mean = 0.6348611706252718
+            Couldn't get feature importance for this classifier!
+            Total time for training: 2.2126882999999995s
+            [[39  8]
+             [10 33]]
+        extended Datensatz:
+            Score = [0.71147541 0.75206612 0.66002747 0.79628017 0.6325232 ], mean = 0.7104744742957002
+            Couldn't get feature importance for this classifier!
+            Total time for training: 5.0475010000000005s
+            [[371   9]
+             [ 28  17]]
+        extended2 Datensatz:
+            Score = [0.53707156 0.58453737 0.49732756 0.54290872 0.49719959], mean = 0.5318089611394557
+            Couldn't get feature importance for this classifier!
+            Total time for training: 13.415157600000004s
+            [[4190    0]
+             [  42    1]]
+    --> vermutlich mehr positiv gelabelte Daten nötig
+
+Weitere selbst gelabelte Daten: 334 weitere negativ gelabelte Daten, 166 positiv gelabelte Daten
+    negative small:
+        Score = [0.80085349 0.75238095 0.81067375 0.74628744 0.85495985], mean = 0.7930310965856346
+        Importance:
+            Has capital letter: 4.094789723399196 %
+            Word length: 22.893010547445705 %
+            Number syllables: 6.334670710545644 %
+            Appearance ratio in pdfs: 16.091350905933524 %
+            Appearances in pdfs: 2.8355002843859762 %
+            Appearance ratio in wikipedia articles: 30.454071097402885 %
+            Appearances in wikipedia articles: 17.296606730887078 %
+        Total time for training: 6.0404637s
+        [[120  22]  --> 84,5%
+         [ 22  76]] --> 77,55%
+
+    negative medium:
+        Score = [0.78525641 0.73329872 0.72408331 0.83536639 0.81837896], mean = 0.7792767592653902
+        Importance:
+            Has capital letter: 5.589047099216473 %
+            Word length: 23.817895643099877 %
+            Number syllables: 6.993955904718481 %
+            Appearance ratio in pdfs: 19.114374593146277 %
+            Appearances in pdfs: 11.947590134443711 %
+            Appearance ratio in wikipedia articles: 21.552184036311598 %
+            Appearances in wikipedia articles: 10.984952589063598 %
+        Total time for training: 5.857073799999999s
+        [[411  59]  --> 87,5%
+         [ 16  89]] --> 85%
+
+    negative large:
+        Score = [0.77182835 0.73189191 0.74900696 0.71046889 0.68969759], mean = 0.7305787388255851
+        Importance:
+            Has capital letter: 2.985627334064753 %
+            Word length: 3.667224924964163 %        --> drastisch geringer
+            Number syllables: 1.767999905700349 %
+            Appearance ratio in pdfs: 15.543859572259034 %
+            Appearances in pdfs: 12.439793127924148 %
+            Appearance ratio in wikipedia articles: 33.61559955289849 %     --> drastisch höher
+            Appearances in wikipedia articles: 29.97989558218907 %          --> drastisch höher
+        Total time for training: 7.584747100000001s
+        [[4092  196]    --> 95,4%
+         [  12   83]]   --> 87,4%
+
+neues Feature: normed feature vector
+    negative small:
+        Score = [0.82961969 0.78387449 0.86210293 0.77540107 0.85644706], mean = 0.8214890475204228
+        Importance:
+            Has capital letter: 3.1341033307270574 %
+            Word length: 15.329536854125744 %
+            Number syllables: 3.955557630101652 %
+            Appearance ratio in pdfs: 13.58026076549826 %
+            Appearances in pdfs: 3.3851297708599932 %
+            Appearance ratio in wikipedia articles: 24.412344698617517 %
+            Appearances in wikipedia articles: 14.82399351129986 %
+            Feature vector normed: 21.379073438769908 %
+        Total time for training: 6.522210300000001s
+        [[121  21]   --> 0.852112676056338
+         [22  76]]   --> 0.7755102040816326
+
+    negative medium:
+        Score = [0.78650279 0.75304958 0.72781042 0.83775421 0.81090247], mean = 0.7832038931735764
+        Importance:
+            Has capital letter: 5.162523110445895 %
+            Word length: 20.8102271727285 %
+            Number syllables: 5.602484933550868 %
+            Appearance ratio in pdfs: 17.782133478866 %
+            Appearances in pdfs: 11.566145716160687 %
+            Appearance ratio in wikipedia articles: 18.383681270866386 %
+            Appearances in wikipedia articles: 10.947224033567993 %
+            Feature vector normed: 9.74558028381367 %
+        Total time for training: 6.497212899999997s
+        [[409  61]   --> 0.8702127659574468
+         [18  87]]   --> 0.8285714285714286
+
+    negative large:
+        Score = [0.77174358 0.74501995 0.75593128 0.73483091 0.70768884], mean = 0.7430429124387394
+        Importance:
+            Has capital letter: 2.241665780992074 %
+            Word length: 2.793818585201954 %
+            Number syllables: 1.3236443729694927 %
+            Appearance ratio in pdfs: 14.572427333430818 %
+            Appearances in pdfs: 13.225639376336945 %
+            Appearance ratio in wikipedia articles: 30.39771345700426 %
+            Appearances in wikipedia articles: 29.69037045990124 %
+            Feature vector normed: 5.7547206341632124 %
+        Total time for training: 7.874555399999991s
+        [[4102  186]   --> 0.9566231343283582
+         [11  84]]   --> 0.8842105263157894
+
+nur extra_data verwendet (alle Wörter aus PDFs, 334 negative Label, 166 positive Label):
+    Score = [0.79591837 0.82383894 0.8342803  0.80573543 0.70170455], mean = 0.7922955168894136
+    Importance:
+        Has capital letter: 7.144728796930298 %
+        Word length: 13.97830569932738 %
+        Number syllables: 3.3501401089138994 %
+        Appearance ratio in pdfs: 8.104573682802547 %
+        Appearances in pdfs: 0.0 %   --> nicht mehr relevant
+        Appearance ratio in wikipedia articles: 31.247371258645483 %
+        Appearances in wikipedia articles: 18.427890292968083 %
+        Feature vector normed: 17.746990160412306 %
+    Total time for training: 6.0174444s
+    [[86  16]   --> 0.8431372549019608
+     [19  29]]   --> 0.6041666666666666
+
+     --> Idee: Testdaten erweitern
+
+Testdaten weiterhin erweitert (alle Wörter aus PDFs, 302 positive Label, 698 negative Label):
+    Score = [0.73052536 0.68888889 0.6855615  0.72775109 0.66369252], mean = 0.6992838708232358
+    Importance:
+        Has capital letter: 9.531139895439845 %
+        Word length: 13.972648778604718 %
+        Number syllables: 5.897508014391071 %
+        Appearance ratio in pdfs: 9.17515865246545 %
+        Appearances in pdfs: 0.08846462378005135 %
+        Appearance ratio in wikipedia articles: 27.02348278165668 %
+        Appearances in wikipedia articles: 12.703269979590996 %
+        Feature vector normed: 21.60832727407119 %
+    Total time for training: 5.6375849s
+    [[161  52]   --> 0.755868544600939
+     [23  64]]   --> 0.735632183908046
+
+erweiterte Testdaten + vorherige Testdaten (positiv gelabelt + unterschiedlich große negativ gelabelt):
+    negative small:
+        Score = [0.74323458 0.79130492 0.77425818 0.76388318 0.72287781], mean = 0.7591117319017296
+        Importance:
+            Has capital letter: 7.710907632873836 %
+            Word length: 14.17317258321395 %
+            Number syllables: 3.9374161558681897 %
+            Appearance ratio in pdfs: 12.60522665110587 %
+            Appearances in pdfs: 1.9298598520274772 %
+            Appearance ratio in wikipedia articles: 24.981974222125636 %
+            Appearances in wikipedia articles: 14.403470178711055 %
+            Feature vector normed: 20.257972724073994 %
+        Total time for training: 6.412561599999998s
+        [[196  55]   --> 0.7808764940239044
+         [36  103]]   --> 0.7410071942446043
+
+    negative medium:
+        Score = [0.75546463 0.77951729 0.74949119 0.72546365 0.77029434], mean = 0.7560462196125037
+        Importance:
+            Has capital letter: 4.449375389233019 %
+            Word length: 19.044497723248245 %
+            Number syllables: 4.71334390419288 %
+            Appearance ratio in pdfs: 17.67844287638982 %
+            Appearances in pdfs: 10.092297533414095 %
+            Appearance ratio in wikipedia articles: 22.215810056675565 %
+            Appearances in wikipedia articles: 11.291950255501016 %
+            Feature vector normed: 10.514282261345386 %
+        Total time for training: 6.461693700000001s
+        [[471  120]   --> 0.7969543147208121
+         [20  114]]   --> 0.8507462686567164
+
+    negative large:
+        Score = [0.75279818 0.73502493 0.76456334 0.74236944 0.73812188], mean = 0.7465755546315653
+        Importance:
+            Has capital letter: 2.6103477933947223 %
+            Word length: 2.799032249654622 %
+            Number syllables: 1.1880602836898786 %
+            Appearance ratio in pdfs: 16.519128480444863 %
+            Appearances in pdfs: 10.426545985791881 %
+            Appearance ratio in wikipedia articles: 32.723877079931945 %
+            Appearances in wikipedia articles: 29.321321354580178 %
+            Feature vector normed: 4.41168677251192 %
+        Total time for training: 7.986368899999988s
+        [[4167  233]   --> 0.9470454545454545
+         [18  115]]   --> 0.8646616541353384
+
+neues Feature: get_suffix:
+    negative small:
+        Score = [0.77696258 0.80350877 0.75994257 0.78834838 0.73839959 0.72792793], mean = 0.765848303511263
+        Importance:
+            Has capital letter: 7.110018999706014 %
+            Word length: 13.494593002927349 %
+            Number syllables: 3.7807449427347914 %
+            Appearance ratio in pdfs: 11.266693341420895 %
+            Appearances in pdfs: 1.7094134686507858 %
+            Appearance ratio in wikipedia articles: 22.779057118615803 %
+            Appearances in wikipedia articles: 13.743862542101231 %
+            Feature vector normed: 18.763002171964644 %
+            Suffix: 7.352614411878489 %
+        [[207  44]   --> 0.8247011952191236
+         [36  103]]   --> 0.7410071942446043
+        Total time for training: 20.508015500000003
+    negative medium:
+        Score = [0.76931434 0.76246334 0.75539654 0.77752468 0.75736425 0.77194894], mean = 0.7656686822658282
+        Score = [0.76633817 0.77820017 0.76262626 0.73777713 0.73856991 0.74316181], mean = 0.7544455753486137
+        Importance:
+            Has capital letter: 4.27309132728527 %
+            Word length: 17.735305337226546 %
+            Number syllables: 4.215827210732099 %
+            Appearance ratio in pdfs: 16.20119425415045 %
+            Appearances in pdfs: 10.768083643417334 %
+            Appearance ratio in wikipedia articles: 20.004882174205747 %
+            Appearances in wikipedia articles: 12.240660548710915 %
+            Feature vector normed: 9.770243232788074 %
+            Suffix: 4.790712271483554 %
+        [[474  117]   --> 0.8020304568527918
+         [20  114]]   --> 0.8507462686567164
+        Total time for training: 31.6480135
+    negative large:
+        Score = [0.75831166 0.75977481 0.742846   0.76428506 0.72336027 0.74998581], mean = 0.7497606013034067
+        Importance:
+            Has capital letter: 2.381233996595488 %
+            Word length: 2.702974529913679 %
+            Number syllables: 1.0904788245517125 %
+            Appearance ratio in pdfs: 16.58502818914361 %
+            Appearances in pdfs: 12.108436838102929 %
+            Appearance ratio in wikipedia articles: 29.73797559433254 %
+            Appearances in wikipedia articles: 29.611544598167434 %
+            Feature vector normed: 4.110625317223231 %
+            Suffix: 1.6717021119693827 %
+        [[4184  216]   --> 0.9509090909090909
+         [18  115]]   --> 0.8646616541353384
+        Total time for training: 159.0875338
+
+Neuronales Netz:
+    Datensätze: positive_path, negative_large, extra_data
+    Labels ungewichtet
+        Neuronales Netz: w=32, l=2
+        Confusion Matrix: [[4378  38]   --> 0.9913949275362319
+                           [51  96]]   --> 0.6530612244897959
+        --> hohe Rate False Negative
+        Accuracy: 0,98049528818759587990357221126452
+    Labels gewichtet: balanced
+        Neuronales Netz: w=64, l=5
+        Confusion Matrix: [[4052  364]   --> 0.917572463768116
+                           [12  135]]   --> 0.9183673469387755
+        --> bessere Rate False Negative
+        Accuracy: 0,91759807144422529037913653298269
+
+SVM: Standardparameter
+    Datensätze: positive_path, negative_large, extra_data
+    Score = [0.70229538 0.65515931 0.62947105 0.61403234 0.65976218 0.62310509], mean = 0.6473042235778484
+        [[4411  5]   --> 0.9988677536231884
+         [120  27]]   --> 0.1836734693877551
+        Total time for training: 174.2997757
+        --> sehr schlechtes Ergebnis
+
+    balanced class weights:
+    Done loading datasets after 158.61805859999998s.
+    Score = [0.574084   0.5815267  0.57773816 0.58051087 0.56672224 0.57142512], mean = 0.5753345155296606
+    [[3672  744]   --> 0.8315217391304348
+     [17  130]]   --> 0.8843537414965986
+    Total time for training: 163.46543799999998
+
+KNN: Standardparameter
+    Datensätze: positive_path, negative_large, extra_data
+    Done loading datasets after 161.5296242s.
+    Score = [0.7410041  0.73174786 0.74085033 0.70309835 0.71008536 0.67077697], mean = 0.7162604961376746
+    Couldn't get feature importance for this classifier!
+    [[4407  9]   --> 0.9979619565217391
+     [103  44]]   --> 0.29931972789115646
+    Total time for training: 162.3700925
+
+    weights='distance':
+    Done loading datasets after 163.8198981s.
+    Score = [0.75844809 0.74624248 0.757517   0.72916119 0.76259434 0.69792709], mean = 0.7419816982636123
+    Couldn't get feature importance for this classifier!
+    [[4383  33]   --> 0.9925271739130435
+     [83  64]]   --> 0.43537414965986393
+    Total time for training: 164.4116952
+
+Optimization of RFC, SVM, KNN: 300 iterations 6fold cv
+    Find optimal RFC...
+    Best params were:
+    {'n_estimators': 200, 'min_samples_split': 5, 'min_samples_leaf': 1, 'max_features': 2, 'max_depth': 13, 'bootstrap': True}
+    Score was 0.7976974727005275
+    [[4319  97]   --> 0.9780344202898551
+     [36  111]]   --> 0.7551020408163265
+    Done with search for RFC after 1241.9464861s.
+
+    Find optimal KNN...
+    Best params were:
+    {'weights': 'distance', 'p': 4, 'n_neighbors': 5}
+    Score was 0.7382204884851067
+    [[4380  36]   --> 0.9918478260869565
+     [85  62]]   --> 0.4217687074829932
+    Done with search for KNN after 95.42104479999989s.
+
+    Find optimal SVM... (6-fold cv, 20 iterations)
+    Best params were:
+    {'shrinking': True, 'probability': False, 'kernel': 'poly', 'gamma': 'scale', 'degree': 6, 'coef0': 1, 'C': 100}
+    Score was 0.6731893677491482
+    [[4011  405]   --> 0.9082880434782609
+     [20  127]]   --> 0.8639455782312925
+    Done with search for SVM after 459.823236s.
+
+Parameter angewandt auf Modelle:
+    Score = [0.79285047 0.78135566 0.80513468 0.77542598 0.82896546 0.80037809], mean = 0.79735172331129
+    [[4320  96]   --> 0.9782608695652174
+     [36  111]]   --> 0.7551020408163265
+     Accuracy: 0.97107166337935568704799474030243
+    Done with training for RFC after 3.9736727s.
+
+    Score = [0.77199743 0.73496437 0.74068624 0.72033631 0.76566274 0.69567584], mean = 0.7382204884851067
+    Couldn't get feature importance for this classifier!
+    [[4380  36]   --> 0.9918478260869565
+     [85  62]]   --> 0.4217687074829932
+     Accuracy: 0,9734823580977427131273285119439
+    Done with training for KNN after 0.8258352999999996s.
+
+    Score = [0.65133109 0.67020886 0.66929665 0.67025647 0.67031078 0.6816987 ], mean = 0.6688504251858558
+    Couldn't get feature importance for this classifier!
+    [[4011  405]   --> 0.9082880434782609
+     [20  127]]   --> 0.8639455782312925
+    Done with  SVM after 418.49668859999997s.
+
+NN Grid search Laufzeiten:
+    Got model [32, 3] after 15.509083499999974s.
+    Got model [32, 4] after 16.176268899999997s.
+    Got model [32, 5] after 17.18999050000002s.
+    Got model [32, 6] after 17.28586249999998s.
+    Got model [64, 2] after 15.164301500000022s.
+    Got model [64, 3] after 16.159432900000013s.
+    Got model [64, 4] after 17.827987800000017s.
+    Got model [64, 5] after 19.25465079999998s.
+    Got model [64, 6] after 20.705986300000006s.
+    Got model [128, 2] after 16.903519899999992s.
+    Got model [128, 3] after 20.180728200000033s.
+    Got model [128, 4] after 22.83784810000003s.
+    Got model [128, 5] after 26.1259867s.
+    Got model [128, 6] after 29.160228399999994s.
+    Got model [256, 2] after 21.14056979999998s.
+    Got model [256, 3] after 28.4027734s.
+    Got model [256, 4] after 34.87073520000007s.
+    Got model [256, 5] after 41.70364159999997s.
+    Got model [256, 6] after 48.1157948s.
+    Got model [512, 2] after 37.267330300000026s.
+    Got model [512, 3] after 64.19213660000003s.
+    Got model [512, 4] after 92.04061720000004s.
+    Got model [512, 5] after 123.14921990000005s.
+    Got model [512, 6] after 152.73241399999995s.
+    Got model [1024, 2] after 137.9787940000001s.
+    Got model [1024, 3] after 255.75476119999985s.
+    Got model [1024, 4] after 369.2021539s.
+    Got model [1024, 5] after 486.6293493999999s.
+    Got model [1024, 6] after 604.9185886s.
+
+    Parameter: w = 256, l = 3, optimizer = adamax
+        Get confusion matrix
+        [[3978  438]   --> 0.9008152173913043
+         [11  136]]   --> 0.9251700680272109
+        Accuracy: 0,90159982467674775367083059390752
+
+Randomized Search alle Parameter:
+    Find optimal RFC...
+    Best params were:
+    {'n_estimators': 1800, 'min_samples_split': 5, 'min_samples_leaf': 1, 'max_features': 1, 'max_depth': 13, 'bootstrap': True}
+    Score was 0.7963465385074807
+    [[4324  92]   --> 0.9791666666666666
+     [37  110]]   --> 0.7482993197278912
+    Done with search for RFC after 1164.2331146s.
+
+    Find optimal KNN...
+    Best params were:
+    {'weights': 'distance', 'p': 2, 'n_neighbors': 6}
+    Score was 0.7353893165244442
+    [[4385  31]   --> 0.9929800724637681
+     [83  64]]   --> 0.43537414965986393
+    Done with search for KNN after 94.39509610000005s.
+
+    Find optimal SVM... (6-fold cv, 20 iterations)
+    Best params were:
+    {'shrinking': True, 'probability': False, 'kernel': 'poly', 'gamma': 'scale', 'degree': 6, 'coef0': 1, 'C': 100}
+    Score was 0.6731893677491482
+    [[4011  405]   --> 0.9082880434782609
+     [20  127]]   --> 0.8639455782312925
+    Done with search for SVM after 459.823236s.
+
+
+Alle Features:
+    Score = [0.78504765 0.78995912 0.80513468 0.78682284 0.81905006 0.80363968], mean = 0.7982756702084982
+    Importance:
+    Has capital letter: 1.5290528085288435 %
+    Word length: 4.940759531498973 %
+    Number syllables: 2.844191938816374 %
+    Appearance ratio in pdfs: 17.54088015959156 %
+    Appearances in pdfs: 16.19689882104133 %
+    Appearance ratio in wikipedia articles: 20.70479658054348 %
+    Appearances in wikipedia articles: 21.17823375211226 %
+    Feature vector normed: 6.118067069532374 %
+    Suffix: 4.19914555864215 %
+    Prefix: 3.937530964127152 %
+    Is stop word: 0.810442815565506 %
+    [[4308  108]   --> 0.9755434782608695
+     [35  112]]   --> 0.7619047619047619
+    Done with training for RFC after 22.414865499999962s.
+
+Bestes NN:
+    F1-score = 0.4425956738768719
+    [[4095  321]   --> 0.9273097826086957
+     [14  133]]   --> 0.9047619047619048
+     {'optimizer': 'adamax', 'layers': 3, 'layer_width': 256, 'init_mode': 'normal', 'epochs': 50, 'dropout_rate': 0.0,
+     'batch_size': 128, 'activation': 'relu'}
+
+Find optimal RFC...
+Best params were:
+{'n_estimators': 200, 'min_samples_split': 2, 'min_samples_leaf': 2, 'max_features': 3, 'max_depth': 14, 'bootstrap': True}
+Score was 0.8002986811088496
+[[4321  95]   --> 0.9784873188405797
+ [32  115]]   --> 0.782312925170068
+Done with search for RFC after 1304.2704158000001s.
+
+Find optimal KNN...
+Best params were:
+{'weights': 'distance', 'p': 1, 'n_neighbors': 8}
+Score was 0.7233925246430227
+[[4386  30]   --> 0.9932065217391305
+ [89  58]]   --> 0.3945578231292517
+Done with search for KNN after 170.2686392999999s.
+
+Find optimal SVM...
+Best params were:
+{'shrinking': True, 'probability': True, 'kernel': 'rbf', 'gamma': 'scale', 'degree': 2, 'coef0': 100, 'C': 100}
+Score was 0.6506463499508502
+[[3932  484]   --> 0.8903985507246377
+ [11  136]]   --> 0.9251700680272109
+Done with search for SVM after 34.554228100000046s.
+
+Score = [0.77912129 0.79060348 0.80251037 0.79175864 0.82404173 0.79593927], mean = 0.7973291313874918
+Importance:
+Has capital letter: 1.9917229180831904 %
+Word length: 4.087289778500652 %
+Number syllables: 1.8085721965027997 %
+Appearance ratio in pdfs: 15.277908958538692 %
+Appearances in pdfs: 11.843024513122606 %
+Appearance ratio in wikipedia articles: 27.469780151114055 %
+Appearances in wikipedia articles: 23.866709627262892 %
+Feature vector normed: 6.48834378938343 %
+Suffix: 3.405496783601092 %
+Prefix: 3.0510665226052036 %
+Is stop word: 0.7100847612853843 %
+[[4314  102]   --> 0.9769021739130435
+ [33  114]]   --> 0.7755102040816326
+Done with training for RFC after 3.0856132000001253s.
+
+Score = [0.73783501 0.77701384 0.70130993 0.68281086 0.7491935  0.69219202], mean = 0.7233925246430227
+Couldn't get feature importance for this classifier!
+[[4386  30]   --> 0.9932065217391305
+ [89  58]]   --> 0.3945578231292517
+Done with training for KNN after 0.8495789000000968s.
+
+Score = [0.64845997 0.67620829 0.64998676 0.64865394 0.63239754 0.6481716 ], mean = 0.6506463499508502
+Couldn't get feature importance for this classifier!
+[[3932  484]   --> 0.8903985507246377
+ [11  136]]   --> 0.9251700680272109
+Done with  SVM after 28.15907590000006s.
+
+---------------------------------------------------------------------------------------------------------------
+
+Best params after grid search were:
+{'max_depth': 17, 'max_features': 3, 'min_samples_leaf': 2, 'min_samples_split': 3, 'n_estimators': 200}
+Score was 0.8112726672490097
+Grid search done after 149.80583239999999
+Score = [0.79594382 0.81343066 0.8217587  0.79627343 0.84313379 0.80809129], mean = 0.8131052823567536
+Importance:
+Has capital letter: 2.074740945034702 %
+Word length: 4.06804637519074 %
+Number syllables: 2.0168311541773445 %
+Appearance ratio in pdfs: 16.134871057379353 %
+Appearances in pdfs: 16.37546514537558 %
+Appearance ratio in wikipedia articles: 22.749001734871914 %
+Appearances in wikipedia articles: 22.509279512567627 %
+Feature vector normed: 6.341019054647486 %
+Suffix: 3.7582707034372205 %
+Prefix: 3.3256760751323804 %
+Is stop word: 0.6467982421856693 %
+Done with training for RFC after 3.0553786999999772s.
+
+[[4338  78]   --> 0.9823369565217391
+ [36  111]]   --> 0.7551020408163265
+    F1 = 0.6547619047619048
+    Recall = 0.7482993197278912
+    Precision = 0.582010582010582
+Done with evaluation for RFC after 0.1074443000000258s.
+
+Without statistical features:
+    Got data after 0.22034460000000022s
+    Score = [0.55629034 0.5792443  0.5921854  0.56629241 0.62549083 0.58542285], mean = 0.5841543535679766
+    Importance:
+    Has capital letter: 3.2539548541706513 %
+    Word length: 17.37518876816765 %
+    Number syllables: 6.277020174067049 %
+    Feature vector normed: 27.971488403547223 %
+    Suffix: 24.4931111533717 %
+    Prefix: 19.648892375579766 %
+    Is stop word: 0.9803442710959518 %
+    Done with training for RFC after 4.1594525s.
+
+    [[4368  48]   --> 0.9891304347826086
+     [116  31]]   --> 0.2108843537414966
+    F1 = 0.2743362831858407
+    Recall = 0.2108843537414966
+    Precision = 0.3924050632911392
+    Done with evaluation for RFC after 0.10703569999999907s.
+
+Only statistical features:
+    Got data after 0.22113590000000016s
+    Score = [0.70003274 0.68784337 0.67910705 0.70093395 0.692688   0.69643717], mean = 0.692840380502338
+    Importance:
+    Appearance ratio in pdfs: 12.43769347453397 %
+    Appearances in pdfs: 8.545068989524086 %
+    Appearance ratio in wikipedia articles: 43.07088048198437 %
+    Appearances in wikipedia articles: 35.94635705395756 %
+    Done with training for RFC after 3.7150168s.
+
+    [[4107  309]   --> 0.9300271739130435
+     [18  129]]   --> 0.8775510204081632
+    F1 = 0.441025641025641
+    Recall = 0.8775510204081632
+    Precision = 0.2945205479452055
+    Done with evaluation for RFC after 0.10710979999999992s.
+
+Without is_stop_word:
+    Got data after 0.2210871000000001s
+    Score = [0.78441296 0.80780276 0.82174626 0.78880685 0.84419204 0.79892781], mean = 0.807648112350933
+    Importance:
+    Has capital letter: 2.203333214697194 %
+    Word length: 4.009098607618114 %
+    Number syllables: 1.855694152971302 %
+    Appearance ratio in pdfs: 14.648662309002908 %
+    Appearances in pdfs: 13.182193810658948 %
+    Appearance ratio in wikipedia articles: 25.026822925435365 %
+    Appearances in wikipedia articles: 25.384062710822235 %
+    Feature vector normed: 6.540698585902128 %
+    Suffix: 3.74074801089294 %
+    Prefix: 3.4086856719988754 %
+    Done with training for RFC after 4.016238099999999s.
+
+    [[4344  72]   --> 0.9836956521739131
+     [43  104]]   --> 0.7074829931972789
+    F1 = 0.6439628482972136
+    Recall = 0.7074829931972789
+    Precision = 0.5909090909090909
+    Done with evaluation for RFC after 0.10681040000000053s.
+
+without is_stop_word and has_capital_letter
+    Got data after 0.22041730000000026s
+    Score = [0.80291587 0.7936639  0.81236448 0.78084696 0.84122513 0.77437255], mean = 0.8008981489149947
+    Importance:
+    Word length: 3.798940716491524 %
+    Number syllables: 2.03606526279879 %
+    Appearance ratio in pdfs: 15.837697631165645 %
+    Appearances in pdfs: 13.858056217237738 %
+    Appearance ratio in wikipedia articles: 26.800990316750433 %
+    Appearances in wikipedia articles: 22.756400462432637 %
+    Feature vector normed: 6.9011959299729035 %
+    Suffix: 4.0276658295486225 %
+    Prefix: 3.9829876336017147 %
+    Done with training for RFC after 3.8204389000000005s.
+
+    [[4338  78]   --> 0.9823369565217391
+     [47  100]]   --> 0.6802721088435374
+    F1 = 0.6153846153846154
+    Recall = 0.6802721088435374
+    Precision = 0.5617977528089888
+    Done with evaluation for RFC after 0.10608649999999997s.
+
+without x + number syllables
+Got data after 0.22326780000000035s
+Score = [0.80809531 0.816044   0.81855082 0.78345752 0.8300111  0.78778483], mean = 0.8073239282922944
+Importance:
+Word length: 4.659071166053232 %
+Appearance ratio in pdfs: 16.79335165027542 %
+Appearances in pdfs: 11.186269072870171 %
+Appearance ratio in wikipedia articles: 28.6343252764964 %
+Appearances in wikipedia articles: 22.744271940389897 %
+Feature vector normed: 7.521580288996568 %
+Suffix: 4.379780495316563 %
+Prefix: 4.081350109601762 %
+Done with training for RFC after 3.8611863s.
+
+[[4339  77]   --> 0.9825634057971014
+ [44  103]]   --> 0.7006802721088435
+F1 = 0.6299694189602447
+Recall = 0.7006802721088435
+Precision = 0.5722222222222222
+Done with evaluation for RFC after 0.10823300000000025s.
+
+without x + prefix + suffix
+Got data after 0.22427309999999956s
+Score = [0.79880491 0.79239766 0.77542598 0.77782416 0.80226372 0.72221326], mean = 0.778154950726937
+Importance:
+Word length: 5.383578325176371 %
+Appearance ratio in pdfs: 13.519322481632202 %
+Appearances in pdfs: 9.63392214915868 %
+Appearance ratio in wikipedia articles: 32.10793796719004 %
+Appearances in wikipedia articles: 28.896835899352062 %
+Feature vector normed: 10.45840317749066 %
+Done with training for RFC after 3.8770928s.
+
+[[4315  101]   --> 0.9771286231884058
+ [41  106]]   --> 0.7210884353741497
+F1 = 0.5988700564971752
+Recall = 0.7210884353741497
+Precision = 0.5120772946859904
+Done with evaluation for RFC after 0.10718400000000017s.
+
+without word length:
+Got data after 0.21994659999999966s
+Score = [0.76342263 0.75912704 0.77736875 0.76837707 0.74385631 0.76414105], mean = 0.7627154758941485
+Importance:
+Appearance ratio in pdfs: 12.637054851553419 %
+Appearances in pdfs: 7.981638120974955 %
+Appearance ratio in wikipedia articles: 35.69918308029396 %
+Appearances in wikipedia articles: 29.65016494129279 %
+Feature vector normed: 14.031959005884884 %
+Done with training for RFC after 3.8061627s.
+
+[[4283  133]   --> 0.9698822463768116
+ [38  109]]   --> 0.7414965986394558
+F1 = 0.5604113110539846
+Recall = 0.7414965986394558
+Precision = 0.45041322314049587
+Done with evaluation for RFC after 0.10699630000000049s.
+
+without word vector:
+Got data after 0.2393906999999995s
+Score = [0.69891875 0.68784337 0.68123766 0.70093395 0.69694883 0.69866854], mean = 0.6940918515962218
+Importance:
+Appearance ratio in pdfs: 13.266660649475357 %
+Appearances in pdfs: 8.52236549663857 %
+Appearance ratio in wikipedia articles: 45.21382193678201 %
+Appearances in wikipedia articles: 32.997151917104055 %
+Done with training for RFC after 3.6801443000000003s.
+
+[[4104  312]   --> 0.9293478260869565
+ [18  129]]   --> 0.8775510204081632
+F1 = 0.4387755102040817
+Recall = 0.8775510204081632
+Precision = 0.2925170068027211
+Done with evaluation for RFC after 0.1072936999999996s.
+
+
+negative small:
+Got data after 45.599627399999996s
+Score = [0.76531987 0.76886611 0.81774028 0.84768943 0.78000784 0.8103426 ], mean = 0.798327686723815
+Importance:
+Has capital letter: 6.681200567924245 %
+Word length: 9.867278090208456 %
+Number syllables: 4.200484356956694 %
+Appearance ratio in pdfs: 11.612997106585393 %
+Appearances in pdfs: 9.84372330468532 %
+Appearance ratio in wikipedia articles: 14.20733853863602 %
+Appearances in wikipedia articles: 13.759128287204167 %
+Feature vector normed: 14.073704796164291 %
+Suffix: 7.366865492805416 %
+Prefix: 7.560304209778355 %
+Is stop word: 0.8269752490516366 %
+Done with training for RFC after 3.4444063999999983s.
+
+[[234  27]   --> 0.896551724137931
+ [60  100]]   --> 0.625
+F1 = 0.6968641114982579
+Recall = 0.625
+Precision = 0.7874015748031497
+Done with evaluation for RFC after 0.10461819999999733s.
+
+negative medium:
+Has capital letter: 4.827561166822529 %
+Word length: 11.795924907375815 %
+Number syllables: 4.280393397193866 %
+Appearance ratio in pdfs: 15.418655392933992 %
+Appearances in pdfs: 13.083038922337794 %
+Appearance ratio in wikipedia articles: 13.635992469064007 %
+Appearances in wikipedia articles: 13.716677896310154 %
+Feature vector normed: 10.167076939003646 %
+Suffix: 6.396154425650903 %
+Prefix: 6.032037538980614 %
+Is stop word: 0.6464869443266742 %
+Done with training for RFC after 3.515148299999993s.
